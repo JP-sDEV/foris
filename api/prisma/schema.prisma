@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @unique
+  bio       String? // Optional user bio
+  avatarUrl String? // Optional avatar/profile image URL
+  createdAt DateTime @default(now())
+
+  oauthAccounts  OAuthAccount[]
+  sessions       Session[]
+  followers      UserFollow[]    @relation("Followers")
+  following      UserFollow[]    @relation("Following")
+  comments       Comment[]
+  posts          Post[]
+  media          Media[]
+  leagues        League[]
+  challenges     Challenge[]
+  userChallenges UserChallenge[]
+  likes          Like[]
+}
+
+model OAuthAccount {
+  id             String    @id @default(uuid()) @db.Uuid
+  provider       String // e.g., "google", "apple"
+  providerUserId String
+  accessToken    String?
+  refreshToken   String?
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  refreshToken String   @unique
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserFollow {
+  followId    String   @db.Uuid
+  followingId String   @db.Uuid
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Following", fields: [followId], references: [id], onDelete: Cascade)
+  following User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followId, followingId]) // Composite primary key to prevent duplicates
+}
+
+model Like {
+  userId String @db.Uuid
+  postId String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  postId    String   @db.Uuid
+  content   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([postId])
+}
+
+model Post {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String
+  content   String?
+  createdAt DateTime @default(now())
+  authorId  String   @db.Uuid
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  mediaFiles Media[]
+
+  comments Comment[]
+  likes    Like[]
+}
+
+model Media {
+  id         String   @id @default(uuid()) @db.Uuid
+  postId     String   @db.Uuid
+  uploaderId String   @db.Uuid
+  fileType   String
+  url        String
+  createdAt  DateTime @default(now())
+
+  uploader User @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  post     Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model League {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  createdBy   String   @db.Uuid
+
+  creator          User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  leagueChallenges LeagueChallenge[]
+}
+
+model Challenge {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  createdBy   String    @db.Uuid
+  approved    Boolean   @default(false)
+  endDate     DateTime?
+
+  creator          User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  userChallenges   UserChallenge[]
+  leagueChallenges LeagueChallenge[]
+}
+
+model UserChallenge {
+  userId      String          @db.Uuid
+  challengeId String          @db.Uuid
+  completedAt DateTime? // Nullable — only set when completed
+  status      ChallengeStatus @default(IN_PROGRESS)
+  startedAt   DateTime        @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, challengeId])
+}
+
+model LeagueChallenge {
+  leagueId    String @db.Uuid
+  challengeId String @db.Uuid
+
+  league    League    @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@id([leagueId, challengeId])
+}
+
+enum ChallengeStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  NOT_IN_PROGRESS
+}
