@@ -4,6 +4,10 @@ api/node_modules
 **/node_modules/
 api/build
 
+# Prisma
+.env
+api/generated/prisma
+
 # Logs
 api/logs
 api/*.log
@@ -38,7 +42,7 @@ api/.vscode/*
 
 # dotenv environment variable files
 api/.env
-api/.env.development.local
+# api/.env.dev.local
 api/.env.test.local
 api/.env.production.local
 api/.env.local
@@ -55,3 +59,5 @@ api/*.pid.lock
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 api/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+/src/generated/prisma
