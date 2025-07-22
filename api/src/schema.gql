@@ -7,43 +7,51 @@ type Auth {
   exampleField: Int!
 }
 
+type AuthPayload {
+  refreshToken: String!
+  user: User!
+}
+
 input CreateAuthInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  accessToken: String!
+  email: String!
+  idToken: String
+  name: String!
+  provider: String!
+  providerUserId: String!
+  refreshToken: String!
 }
 
 input CreateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  email: String!
+  name: String!
 }
 
 type Mutation {
-  createAuth(createAuthInput: CreateAuthInput!): Auth!
+  createAuth(createAuthInput: CreateAuthInput!): AuthPayload!
   createUser(createUserInput: CreateUserInput!): User!
-  removeAuth(id: Int!): Auth!
-  removeUser(id: Int!): User!
-  updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
+  refreshToken(refreshToken: String!): AuthPayload!
+  removeAuth(id: String!): Boolean!
+  removeUser(id: String!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
 type Query {
-  auth(id: Int!): Auth!
-  user(id: Int!): User!
-}
-
-input UpdateAuthInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  authByEmail(email: String!): User!
+  user(id: String!): User!
 }
 
 input UpdateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  avatarUrl: String
+  bio: String
+  email: String
+  id: String!
+  name: String
 }
 
 type User {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  email: String!
+  id: Int!
+  name: String!
+  oauthAccounts: [Auth!]
 }
