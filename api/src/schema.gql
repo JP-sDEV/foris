@@ -13,13 +13,11 @@ type AuthPayload {
 }
 
 input CreateAuthInput {
-  accessToken: String!
   email: String!
   idToken: String
   name: String!
   provider: String!
   providerUserId: String!
-  refreshToken: String!
 }
 
 input CreateUserInput {
@@ -51,7 +49,7 @@ input UpdateUserInput {
 
 type User {
   email: String!
-  id: Int!
+  id: ID!
   name: String!
   oauthAccounts: [Auth!]
 }
