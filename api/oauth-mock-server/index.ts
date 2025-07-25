@@ -20,6 +20,11 @@ app.use(express.json());
 const privateKeyPath = path.join(__dirname, 'private.key');
 const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // POST /token endpoint
 app.post('/token', (req: any, res: any) => {
   const { sub, email, name } = req.body as TokenRequestBody;
