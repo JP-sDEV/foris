@@ -16,13 +16,14 @@ export class UserService {
         `User with email ${createUserInput.email} already exists`,
       );
     }
-
+    // Create new user
     const newUser = await this.prisma.user.create({
       data: {
         name: createUserInput.name,
         email: createUserInput.email,
       },
     });
+
     return newUser;
   }
 

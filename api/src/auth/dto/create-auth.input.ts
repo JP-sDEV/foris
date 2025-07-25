@@ -14,11 +14,11 @@ export class CreateAuthInput {
   @Field()
   providerUserId: string;
 
-  @Field()
-  accessToken: string;
+  // @Field()
+  // accessToken: string;
 
-  @Field()
-  refreshToken: string;
+  // @Field()
+  // refreshToken: string;
 
   @Field({ nullable: true }) // GraphQL: optional
   idToken?: string;

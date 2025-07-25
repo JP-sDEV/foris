@@ -1,57 +1,28 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { CreateAuthInput } from './dto/create-auth.input';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserService } from '../user/user.service';
-import { randomBytes } from 'crypto';
+import { SessionService } from '../session/session.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private userService: UserService,
+    private sessionService: SessionService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  private generateSecureToken(): string {
-    return randomBytes(32).toString('hex');
-  }
-
   async create(createAuthInput: CreateAuthInput) {
+    // Replace with UserService to find user by email
     const user = await this.userService.findOneByEmail(createAuthInput.email);
 
     if (user) {
-      // User exists — find their session (if any)
-      const oldSession = await this.prisma.session.findFirst({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      // Revoke old refresh token if exists
-      if (oldSession) {
-        await this.prisma.session.delete({ where: { id: oldSession.id } });
-      }
-
-      // Create new session with new refresh token
-      const newRefreshToken = this.generateSecureToken();
-      const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
-
-      await this.prisma.session.create({
-        data: {
-          userId: user.id,
-          refreshToken: newRefreshToken,
-          expiresAt,
-          // Optionally add ipAddress and userAgent if you track them
-        },
-      });
-
-      // Return user info and the new refresh token together
-      return {
-        user,
-        refreshToken: newRefreshToken,
-      };
+      throw new Error(
+        `User with email ${createAuthInput.email} already exists`,
+      );
     }
-
-    const newRefreshToken = this.generateSecureToken();
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
     const newUser = await this.prisma.user.create({
       data: {
@@ -61,75 +32,48 @@ export class AuthService {
           create: {
             provider: createAuthInput.provider,
             providerUserId: createAuthInput.providerUserId,
-            accessToken: createAuthInput.accessToken,
-            refreshToken: createAuthInput.refreshToken,
             expiresAt: new Date(Date.now() + 3600 * 1000),
-          },
-        },
-        sessions: {
-          create: {
-            refreshToken: newRefreshToken,
-            expiresAt,
           },
         },
       },
     });
-    // Return new user and refresh token
+
+    const payload = { sub: newUser.id, name: newUser.name };
+    const accessToken = this.jwtService.sign(payload);
+
+    // Generate your own refresh token for the session (recommended)
+    const appRefreshToken = this.sessionService.generateSecureToken();
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 90); // 3 months
+
+    const session = await this.sessionService.create({
+      refreshToken: appRefreshToken,
+      userAgent: null, // Optionally set if you track user agent
+      ipAddress: null, // Optionally set if you track IP
+      userId: newUser.id,
+      email: newUser.email,
+      expiresAt: expiresAt,
+    });
+
+    if (!session) {
+      throw new Error('Failed to create session');
+    }
+
     return {
       user: newUser,
-      refreshToken: newRefreshToken,
+      accessToken,
+      refreshToken: session.refreshToken,
     };
   }
 
   async findOneByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: {
-        oauthAccounts: true,
-      },
-    });
+    const user = await this.userService.findOneByEmail(email);
+    console.log('AuthService.findOneByEmail called');
 
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
 
     return user;
-  }
-
-  async refreshToken(refreshToken: string) {
-    // Find the session by refresh token, include the user relation
-    const oldSession = await this.prisma.session.findUnique({
-      where: { refreshToken },
-      include: { user: true },
-    });
-
-    if (!oldSession) {
-      throw new Error('Session not found');
-    }
-
-    const user = oldSession.user; // Get the user from the session
-
-    // Delete the old session
-    await this.prisma.session.delete({ where: { id: oldSession.id } });
-
-    // Create new session with new refresh token
-    const newRefreshToken = this.generateSecureToken();
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
-
-    await this.prisma.session.create({
-      data: {
-        userId: user.id,
-        refreshToken: newRefreshToken,
-        expiresAt,
-        // Optionally add ipAddress and userAgent if you track them
-      },
-    });
-
-    // Return user info and the new refresh token together
-    return {
-      user,
-      refreshToken: newRefreshToken,
-    };
   }
 
   async remove(id: string) {
@@ -144,5 +88,20 @@ export class AuthService {
     const deleted = await this.prisma.oAuthAccount.delete({ where: { id } });
 
     return deleted;
+  }
+
+  async refreshToken(refreshToken: string) {
+    const session = await this.sessionService.findUnique(refreshToken);
+
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    const newSession = await this.sessionService.update(refreshToken);
+
+    return {
+      user: session.user,
+      refreshToken: newSession.refreshToken,
+    };
   }
 }

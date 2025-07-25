@@ -2,12 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserService } from '../user/user.service';
+import { SessionService } from '../session/session.service';
+import { JwtService } from '@nestjs/jwt';
 import { NotFoundException } from '@nestjs/common';
 
 describe('AuthService', () => {
   let service: AuthService;
   let prismaMock: any;
   let userServiceMock: any;
+  let sessionServiceMock: any;
+  let jwtServiceMock: any;
 
   beforeEach(async () => {
     prismaMock = {
@@ -31,11 +35,28 @@ describe('AuthService', () => {
       findOneByEmail: jest.fn(),
     };
 
+    sessionServiceMock = {
+      create: jest
+        .fn()
+        .mockResolvedValue({ refreshToken: 'mocked-refresh-token' }),
+      findFirst: jest.fn(),
+      delete: jest.fn(),
+      findUnique: jest.fn(),
+      generateSecureToken: jest.fn().mockReturnValue('mocked-token'),
+      findOne: jest.fn(),
+    };
+
+    jwtServiceMock = {
+      sign: jest.fn().mockReturnValue('token'),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: UserService, useValue: userServiceMock },
+        { provide: SessionService, useValue: sessionServiceMock },
+        { provide: JwtService, useValue: jwtServiceMock },
       ],
     }).compile();
 
@@ -62,22 +83,20 @@ describe('AuthService', () => {
         accessToken: 'token',
         refreshToken: 'refresh',
       };
-
       const result = await service.create(input as any);
 
-      expect(prismaMock.user.create).toHaveBeenCalled();
-      expect(result).toHaveProperty('user');
-      expect(result).toHaveProperty('refreshToken');
+      expect(result).toEqual({
+        user: { id: 1, email: 'test@example.com' },
+        accessToken: 'token',
+        refreshToken: 'mocked-refresh-token',
+      });
     });
 
-    it('should revoke old session and create new session if user exists', async () => {
+    it('should throw an error if user already exists', async () => {
       userServiceMock.findOneByEmail.mockResolvedValue({
         id: 1,
         email: 'test@example.com',
       });
-      prismaMock.session.findFirst.mockResolvedValue({ id: 2 });
-      prismaMock.session.delete.mockResolvedValue({});
-      prismaMock.session.create.mockResolvedValue({});
 
       const input = {
         name: 'Test',
@@ -88,20 +107,15 @@ describe('AuthService', () => {
         refreshToken: 'refresh',
       };
 
-      const result = await service.create(input as any);
-
-      expect(prismaMock.session.delete).toHaveBeenCalledWith({
-        where: { id: 2 },
-      });
-      expect(prismaMock.session.create).toHaveBeenCalled();
-      expect(result).toHaveProperty('user');
-      expect(result).toHaveProperty('refreshToken');
+      await expect(service.create(input as any)).rejects.toThrow(
+        'User with email test@example.com already exists',
+      );
     });
   });
 
   describe('findOneByEmail', () => {
     it('should return user if found', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
+      userServiceMock.findOneByEmail.mockResolvedValue({
         id: 1,
         email: 'test@example.com',
       });
@@ -121,20 +135,22 @@ describe('AuthService', () => {
 
   describe('refreshToken', () => {
     it('should refresh token if session exists', async () => {
-      prismaMock.session.findUnique.mockResolvedValue({
+      sessionServiceMock.findUnique.mockResolvedValue({
         id: 1,
         user: { id: 2, email: 'test@example.com' },
       });
-      prismaMock.session.delete.mockResolvedValue({});
-      prismaMock.session.create.mockResolvedValue({});
 
-      const result = await service.refreshToken('sometoken');
-      expect(prismaMock.session.delete).toHaveBeenCalledWith({
-        where: { id: 1 },
+      sessionServiceMock.update = jest.fn().mockResolvedValue({
+        refreshToken: 'new-refresh-token',
       });
-      expect(prismaMock.session.create).toHaveBeenCalled();
-      expect(result).toHaveProperty('user');
-      expect(result).toHaveProperty('refreshToken');
+      const result = await service.refreshToken('sometoken');
+
+      expect(sessionServiceMock.findUnique).toHaveBeenCalledWith('sometoken');
+      expect(sessionServiceMock.update).toHaveBeenCalledWith('sometoken');
+      expect(result).toEqual({
+        user: { id: 2, email: 'test@example.com' },
+        refreshToken: 'new-refresh-token',
+      });
     });
 
     it('should throw error if session not found', async () => {
