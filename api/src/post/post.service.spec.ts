@@ -121,6 +121,7 @@ describe('PostService', () => {
     it('should update a post by ID', async () => {
       const id = 'abc123';
       const updateData: UpdatePostInput = {
+        id: id,
         title: 'Updated Title',
         content: 'Updated Content',
         authorId: 'author456',
@@ -185,6 +186,7 @@ describe('PostService', () => {
     it('should throw NotFoundException if update fails (post not found)', async () => {
       const id = 'invalid-id';
       const updateData: UpdatePostInput = {
+        id: 'invalid-id',
         title: 'Does not matter',
         content: '...',
         authorId: 'authorX',
