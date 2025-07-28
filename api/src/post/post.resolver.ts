@@ -3,33 +3,62 @@ import { PostService } from './post.service';
 import { Post } from './entities/post.entity';
 import { CreatePostInput } from './dto/create-post.input';
 import { UpdatePostInput } from './dto/update-post.input';
+import {
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 @Resolver(() => Post)
 export class PostResolver {
   constructor(private readonly postService: PostService) {}
 
   @Mutation(() => Post)
-  createPost(@Args('createPostInput') createPostInput: CreatePostInput) {
-    return this.postService.create(createPostInput);
+  async createPost(@Args('createPostInput') createPostInput: CreatePostInput) {
+    try {
+      return await this.postService.create(createPostInput);
+    } catch (error) {
+      console.error('Error creating post:', error);
+      throw new InternalServerErrorException('Failed to create post');
+    }
   }
 
-  @Query(() => [Post], { name: 'post' })
-  findAll() {
-    return this.postService.findAll();
-  }
+  // @Query(() => [Post], { name: 'post' })
+  // async findAll() {
+  //   try {
+  //     return await this.postService.findAll();
+  //   } catch (error) {
+  //     console.error('Error creating post:', error);
+  //     throw new InternalServerErrorException('Failed to fetch posts');
+  //   }
+  // }
 
   @Query(() => Post, { name: 'post' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.postService.findOne(id);
+  async findOne(@Args('id', { type: () => Int }) id: string) {
+    try {
+      return await this.postService.findOne(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Failed to fetch post');
+    }
   }
 
   @Mutation(() => Post)
-  updatePost(@Args('updatePostInput') updatePostInput: UpdatePostInput) {
-    return this.postService.update(updatePostInput.id, updatePostInput);
+  async updatePost(@Args('updatePostInput') updatePostInput: UpdatePostInput) {
+    try {
+      return await this.postService.update(updatePostInput.id, updatePostInput);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Failed to update post');
+    }
   }
 
   @Mutation(() => Post)
-  removePost(@Args('id', { type: () => Int }) id: number) {
-    return this.postService.remove(id);
+  async removePost(@Args('id', { type: () => Int }) id: string) {
+    try {
+      return await this.postService.remove(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Failed to delete post');
+    }
   }
 }
