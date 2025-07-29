@@ -3,8 +3,7 @@
 # ------------------------------------------------------
 
 type Auth {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  user: User!
 }
 
 type AuthPayload {
@@ -20,6 +19,12 @@ input CreateAuthInput {
   providerUserId: String!
 }
 
+input CreatePostInput {
+  authorId: String!
+  content: String
+  title: String!
+}
+
 input CreateUserInput {
   email: String!
   name: String!
@@ -27,16 +32,35 @@ input CreateUserInput {
 
 type Mutation {
   createAuth(createAuthInput: CreateAuthInput!): AuthPayload!
+  createPost(createPostInput: CreatePostInput!): Post!
   createUser(createUserInput: CreateUserInput!): User!
   refreshToken(refreshToken: String!): AuthPayload!
   removeAuth(id: String!): Boolean!
+  removePost(id: String!): Post!
   removeUser(id: String!): User!
+  updatePost(updatePostInput: UpdatePostInput!): Post!
   updateUser(updateUserInput: UpdateUserInput!): User!
+}
+
+type Post {
+  authorId: String!
+  content: String!
+  id: ID!
+  title: String!
 }
 
 type Query {
   authByEmail(email: String!): User!
+  post(id: String!): Post!
   user(id: String!): User!
+  userPosts(userId: String!): [Post!]!
+}
+
+input UpdatePostInput {
+  authorId: String
+  content: String
+  id: String
+  title: String
 }
 
 input UpdateUserInput {
