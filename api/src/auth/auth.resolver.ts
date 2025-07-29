@@ -25,7 +25,7 @@ export class AuthResolver {
     return this.authService.refreshToken(refreshToken);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { name: 'removeAuth' })
   removeAuth(@Args('id', { type: () => String }) id: string) {
     return this.authService.remove(id);
   }

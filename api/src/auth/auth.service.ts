@@ -85,9 +85,9 @@ export class AuthService {
       throw new NotFoundException(`OAuthAccount with ID ${id} not found`);
     }
 
-    const deleted = await this.prisma.oAuthAccount.delete({ where: { id } });
+    await this.prisma.oAuthAccount.delete({ where: { id } });
 
-    return deleted;
+    return true;
   }
 
   async refreshToken(refreshToken: string) {
