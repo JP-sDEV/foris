@@ -65,6 +65,28 @@ export class PostService {
     }
   }
 
+  // Gets all posts that belong to a specific user
+  async findUserPosts(userId: string) {
+    try {
+      const posts = await this.prisma.post.findMany({
+        where: { authorId: userId },
+        // Optionally include related data
+        include: {
+          author: true,
+          comments: true,
+          likes: true,
+        },
+      });
+
+      return posts;
+    } catch (error) {
+      console.error('Error fetching posts for user:', error);
+      throw new InternalServerErrorException(
+        'Failed to fetch posts for the user',
+      );
+    }
+  }
+
   async update(id: string, updatePostInput: UpdatePostInput) {
     try {
       // Ensure post exists

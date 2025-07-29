@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { PostService } from './post.service';
 import { Post } from './entities/post.entity';
 import { CreatePostInput } from './dto/create-post.input';
@@ -13,7 +13,9 @@ export class PostResolver {
   constructor(private readonly postService: PostService) {}
 
   @Mutation(() => Post)
-  async createPost(@Args('createPostInput') createPostInput: CreatePostInput) {
+  async createPost(
+    @Args('createPostInput') createPostInput: CreatePostInput,
+  ): Promise<Post> {
     try {
       return await this.postService.create(createPostInput);
     } catch (error) {
@@ -22,18 +24,8 @@ export class PostResolver {
     }
   }
 
-  // @Query(() => [Post], { name: 'post' })
-  // async findAll() {
-  //   try {
-  //     return await this.postService.findAll();
-  //   } catch (error) {
-  //     console.error('Error creating post:', error);
-  //     throw new InternalServerErrorException('Failed to fetch posts');
-  //   }
-  // }
-
   @Query(() => Post, { name: 'post' })
-  async findOne(@Args('id', { type: () => Int }) id: string) {
+  async findOneById(@Args('id', { type: () => String }) id: string) {
     try {
       return await this.postService.findOne(id);
     } catch (error) {
@@ -42,7 +34,13 @@ export class PostResolver {
     }
   }
 
-  @Mutation(() => Post)
+  // Gets all posts that belong to a specific user
+  @Query(() => [Post], { name: 'userPosts' })
+  async findUserPosts(@Args('userId', { type: () => String }) userId: string) {
+    return this.postService.findUserPosts(userId);
+  }
+
+  @Mutation(() => Post, { name: 'updatePost' })
   async updatePost(@Args('updatePostInput') updatePostInput: UpdatePostInput) {
     try {
       return await this.postService.update(updatePostInput.id, updatePostInput);
@@ -53,7 +51,7 @@ export class PostResolver {
   }
 
   @Mutation(() => Post)
-  async removePost(@Args('id', { type: () => Int }) id: string) {
+  async removePost(@Args('id', { type: () => String }) id: string) {
     try {
       return await this.postService.remove(id);
     } catch (error) {
