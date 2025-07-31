@@ -12,6 +12,7 @@ import { SessionModule } from '../session/session.module';
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'defaultSecretKey',
       signOptions: { expiresIn: '1h' },
+      global: true,
     }),
     forwardRef(() => SessionModule),
   ],
