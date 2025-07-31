@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionModule } from './session/session.module';
 import { PostModule } from './post/post.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -13,11 +14,15 @@ import { PostModule } from './post/post.module';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
+      context: ({ req }) => {
+        return { req };
+      },
     }),
     UserModule,
     AuthModule,
     SessionModule,
     PostModule,
+    CommentModule,
   ],
 })
 export class AppModule {}
