@@ -1,35 +1,54 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { LikeService } from './like.service';
 import { Like } from './entities/like.entity';
 import { CreateLikeInput } from './dto/create-like.input';
-import { UpdateLikeInput } from './dto/update-like.input';
+import { UseGuards, InternalServerErrorException } from '@nestjs/common';
+import { GqlAuthGuard } from 'src/auth/auth.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Resolver(() => Like)
 export class LikeResolver {
   constructor(private readonly likeService: LikeService) {}
 
   @Mutation(() => Like)
-  createLike(@Args('createLikeInput') createLikeInput: CreateLikeInput) {
-    return this.likeService.create(createLikeInput);
-  }
-
-  @Query(() => [Like], { name: 'like' })
-  findAll() {
-    return this.likeService.findAll();
+  @UseGuards(GqlAuthGuard)
+  async createLike(
+    @Args('createLikeInput') createLikeInput: CreateLikeInput,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      return await this.likeService.create(user.sub, createLikeInput);
+    } catch (error) {
+      console.error('Error creating like:', error);
+      throw new InternalServerErrorException('Failed to create like');
+    }
   }
 
   @Query(() => Like, { name: 'like' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.likeService.findOne(id);
+  @UseGuards(GqlAuthGuard)
+  async findOne(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      return await this.likeService.findOne(user.sub, id);
+    } catch (error) {
+      console.error('Error finding like:', error);
+      throw new InternalServerErrorException('Failed to find like');
+    }
   }
 
   @Mutation(() => Like)
-  updateLike(@Args('updateLikeInput') updateLikeInput: UpdateLikeInput) {
-    return this.likeService.update(updateLikeInput.id, updateLikeInput);
-  }
-
-  @Mutation(() => Like)
-  removeLike(@Args('id', { type: () => Int }) id: number) {
-    return this.likeService.remove(id);
+  @UseGuards(GqlAuthGuard)
+  async removeLike(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      return await this.likeService.remove(user.sub, id);
+    } catch (error) {
+      console.error('Error removing like:', error);
+      throw new InternalServerErrorException('Failed to remove like');
+    }
   }
 }
