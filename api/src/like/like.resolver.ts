@@ -3,8 +3,8 @@ import { LikeService } from './like.service';
 import { Like } from './entities/like.entity';
 import { CreateLikeInput } from './dto/create-like.input';
 import { UseGuards, InternalServerErrorException } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/auth/auth.guard';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { GqlAuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Resolver(() => Like)
 export class LikeResolver {
