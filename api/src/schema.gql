@@ -33,6 +33,11 @@ input CreateCommentInput {
   postId: ID!
 }
 
+input CreateLikeInput {
+  """ID of the post to like"""
+  postId: String!
+}
+
 input CreatePostInput {
   authorId: String!
   content: String
@@ -49,14 +54,23 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Like {
+  post: Post
+  postId: String!
+  user: User
+  userId: String!
+}
+
 type Mutation {
   createAuth(createAuthInput: CreateAuthInput!): AuthPayload!
   createComment(createCommentInput: CreateCommentInput!): Comment!
+  createLike(createLikeInput: CreateLikeInput!): Like!
   createPost(createPostInput: CreatePostInput!): Post!
   createUser(createUserInput: CreateUserInput!): User!
   refreshToken(refreshToken: String!): AuthPayload!
   removeAuth(id: String!): Boolean!
   removeComment(id: String!): Comment!
+  removeLike(id: String!): Like!
   removePost(id: String!): Post!
   removeUser(id: String!): User!
   updateComment(updateCommentInput: UpdateCommentInput!): Comment!
@@ -74,6 +88,7 @@ type Post {
 type Query {
   authByEmail(email: String!): User!
   comment(id: String!): Comment!
+  like(id: String!): Like!
   post(id: String!): Post!
   user(id: String!): User!
   userPosts(userId: String!): [Post!]!
