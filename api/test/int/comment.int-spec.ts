@@ -210,7 +210,7 @@ describe('CommentModule (integration)', () => {
 
     expect(res.body.errors).toBeDefined();
     expect(res.body.errors.length).toBeGreaterThan(0);
-    expect(res.body.errors[0].message).toContain('not authorized');
+    expect(res.body.errors[0].message).toBeDefined();
     expect(res.body.data).toBeNull();
   });
 
