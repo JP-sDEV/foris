@@ -3,33 +3,53 @@ import { UserfollowService } from './userfollow.service';
 import { Userfollow } from './entities/userfollow.entity';
 import { CreateUserfollowInput } from './dto/create-userfollow.input';
 import { UpdateUserfollowInput } from './dto/update-userfollow.input';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { User } from '../user/entities/user.entity';
 
 @Resolver(() => Userfollow)
 export class UserfollowResolver {
   constructor(private readonly userfollowService: UserfollowService) {}
 
-  @Mutation(() => Userfollow)
-  createUserfollow(@Args('createUserfollowInput') createUserfollowInput: CreateUserfollowInput) {
-    return this.userfollowService.create(createUserfollowInput);
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  followUser(
+    @Args('targetUserId') targetUserId: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<boolean> {
+    return this.userfollowService.followUser(currentUser.id: string, targetUserId);
   }
 
-  @Query(() => [Userfollow], { name: 'userfollow' })
-  findAll() {
-    return this.userfollowService.findAll();
-  }
+  // @Mutation(() => Boolean)
+  // unfollowUser(
+  //   @Args('targetUserId') targetUserId: string,
+  //   @CurrentUser() currentUser: User,
+  // ): Promise<boolean>
 
-  @Query(() => Userfollow, { name: 'userfollow' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.userfollowService.findOne(id);
-  }
+  // @Query(() => [User])
+  // getFollowers(
+  //   @Args('userId') userId: string,
+  // ): Promise<User[]>
 
-  @Mutation(() => Userfollow)
-  updateUserfollow(@Args('updateUserfollowInput') updateUserfollowInput: UpdateUserfollowInput) {
-    return this.userfollowService.update(updateUserfollowInput.id, updateUserfollowInput);
-  }
+  // @Query(() => [User])
+  // getFollowing(
+  //   @Args('userId') userId: string,
+  // ): Promise<User[]>
 
-  @Mutation(() => Userfollow)
-  removeUserfollow(@Args('id', { type: () => Int }) id: number) {
-    return this.userfollowService.remove(id);
-  }
+  // @Query(() => Int)
+  // getFollowerCount(
+  //   @Args('userId') userId: string,
+  // ): Promise<number>
+
+  // @Query(() => Int)
+  // getFollowingCount(
+  //   @Args('userId') userId: string,
+  // ): Promise<number>
+
+  // @Query(() => Boolean)
+  // isFollowing(
+  //   @Args('targetUserId') targetUserId: string,
+  //   @CurrentUser() currentUser: User,
+  // ): Promise<boolean>
 }

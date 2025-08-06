@@ -4,7 +4,7 @@ import { UpdateUserfollowInput } from './dto/update-userfollow.input';
 
 @Injectable()
 export class UserfollowService {
-  create(createUserfollowInput: CreateUserfollowInput) {
+  followUser(currentUser.id, targetUserId) {
     return 'This action adds a new userfollow';
   }
 
