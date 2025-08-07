@@ -10,6 +10,7 @@ import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
 import { UserfollowModule } from './userfollow/userfollow.module';
 import { ChallengeModule } from './challenge/challenge.module';
+import { UserchallengeModule } from './userchallenge/userchallenge.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ChallengeModule } from './challenge/challenge.module';
     LikeModule,
     UserfollowModule,
     ChallengeModule,
+    UserchallengeModule,
   ],
 })
 export class AppModule {}
