@@ -9,6 +9,7 @@ import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
 import { UserfollowModule } from './userfollow/userfollow.module';
+import { ChallengeModule } from './challenge/challenge.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UserfollowModule } from './userfollow/userfollow.module';
     CommentModule,
     LikeModule,
     UserfollowModule,
+    ChallengeModule,
   ],
 })
 export class AppModule {}
