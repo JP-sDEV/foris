@@ -1,8 +1,14 @@
-import { CreateUserchallengeInput } from './create-userchallenge.input';
-import { InputType, Field, Int, PartialType } from '@nestjs/graphql';
+import { JoinUserChallengeInput } from './join-userchallenge.input';
+import { InputType, Field, PartialType } from '@nestjs/graphql';
+import { ChallengeStatus } from '@prisma/client';
 
 @InputType()
-export class UpdateUserchallengeInput extends PartialType(CreateUserchallengeInput) {
-  @Field(() => Int)
-  id: number;
+export class UpdateUserChallengeInput extends PartialType(
+  JoinUserChallengeInput,
+) {
+  @Field(() => ChallengeStatus, { nullable: true })
+  status?: ChallengeStatus;
+
+  @Field(() => Date, { nullable: true })
+  completedAt?: Date;
 }

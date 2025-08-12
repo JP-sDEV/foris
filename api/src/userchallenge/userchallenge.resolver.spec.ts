@@ -4,6 +4,7 @@ import { UserchallengeService } from './userchallenge.service';
 
 describe('UserchallengeResolver', () => {
   let resolver: UserchallengeResolver;
+  let prisma: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
