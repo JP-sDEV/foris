@@ -36,6 +36,7 @@ export class UserchallengeResolver {
 
   // Update challenge status
   @Mutation(() => Userchallenge)
+  @UseGuards(GqlAuthGuard)
   async updateUserChallenge(
     @Args('updateUserChallengeInput')
     updateUserChallengeInput: UpdateUserChallengeInput,
@@ -53,6 +54,7 @@ export class UserchallengeResolver {
   }
 
   @Query(() => Userchallenge, { name: 'userchallenge' })
+  @UseGuards(GqlAuthGuard)
   async findOne(
     @Args('joinUserChallengeInput')
     joinUserChallengeInput: JoinUserChallengeInput,
