@@ -11,6 +11,19 @@ type AuthPayload {
   user: User!
 }
 
+type Challenge {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+"""Status of a challenge for a user"""
+enum ChallengeStatus {
+  COMPLETED
+  FAILED
+  IN_PROGRESS
+  NOT_IN_PROGRESS
+}
+
 type Comment {
   content: String!
   createdAt: DateTime!
@@ -26,6 +39,17 @@ input CreateAuthInput {
   name: String!
   provider: String!
   providerUserId: String!
+}
+
+input CreateChallengeInput {
+  """Optional description of the challenge"""
+  description: String
+
+  """Optional end date for the challenge"""
+  endDate: DateTime
+
+  """Name of the challenge"""
+  name: String!
 }
 
 input CreateCommentInput {
@@ -54,6 +78,10 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+input JoinUserChallengeInput {
+  challengeId: String!
+}
+
 type Like {
   post: Post
   postId: String!
@@ -63,19 +91,27 @@ type Like {
 
 type Mutation {
   createAuth(createAuthInput: CreateAuthInput!): AuthPayload!
+  createChallenge(createChallengeInput: CreateChallengeInput!): Challenge!
   createComment(createCommentInput: CreateCommentInput!): Comment!
   createLike(createLikeInput: CreateLikeInput!): Like!
   createPost(createPostInput: CreatePostInput!): Post!
   createUser(createUserInput: CreateUserInput!): User!
+  followUser(targetUserId: String!): Boolean!
+  joinUserChallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
   refreshToken(refreshToken: String!): AuthPayload!
   removeAuth(id: String!): Boolean!
+  removeChallenge(id: String!): Challenge!
   removeComment(id: String!): Comment!
   removeLike(id: String!): Like!
   removePost(id: String!): Post!
   removeUser(id: String!): User!
+  removeUserChallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
+  unfollowUser(targetUserId: String!): Boolean!
+  updateChallenge(updateChallengeInput: UpdateChallengeInput!): Challenge!
   updateComment(updateCommentInput: UpdateCommentInput!): Comment!
   updatePost(updatePostInput: UpdatePostInput!): Post!
   updateUser(updateUserInput: UpdateUserInput!): User!
+  updateUserChallenge(updateUserChallengeInput: UpdateUserChallengeInput!): Userchallenge!
 }
 
 type Post {
@@ -87,11 +123,33 @@ type Post {
 
 type Query {
   authByEmail(email: String!): User!
+  challenge(id: String!): Challenge!
+  challenges: [Challenge!]!
   comment(id: String!): Comment!
+  getFollowerCount(userId: String!): Int!
+  getFollowers(userId: String!): [User!]!
+  getFollowing(userId: String!): [User!]!
+  getFollowingCount(userId: String!): Int!
+  isFollowing(targetUserId: String!): Boolean!
   like(id: String!): Like!
   post(id: String!): Post!
   user(id: String!): User!
   userPosts(userId: String!): [Post!]!
+  userchallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
+}
+
+input UpdateChallengeInput {
+  """Optional description of the challenge"""
+  description: String
+
+  """Optional end date for the challenge"""
+  endDate: DateTime
+
+  """UUID of the challenge to update"""
+  id: String!
+
+  """Name of the challenge"""
+  name: String
 }
 
 input UpdateCommentInput {
@@ -107,6 +165,12 @@ input UpdatePostInput {
   title: String
 }
 
+input UpdateUserChallengeInput {
+  challengeId: String
+  completedAt: DateTime
+  status: ChallengeStatus
+}
+
 input UpdateUserInput {
   avatarUrl: String
   bio: String
@@ -120,4 +184,12 @@ type User {
   id: ID!
   name: String!
   oauthAccounts: [Auth!]
+}
+
+type Userchallenge {
+  challengeId: String!
+  completedAt: DateTime
+  startedAt: DateTime!
+  status: ChallengeStatus!
+  userId: String!
 }
