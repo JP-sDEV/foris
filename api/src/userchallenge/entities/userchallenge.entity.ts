@@ -1,7 +1,20 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
+import { ChallengeStatus } from '@prisma/client';
 
 @ObjectType()
 export class Userchallenge {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @Field()
+  userId: string;
+
+  @Field()
+  challengeId: string;
+
+  @Field(() => ChallengeStatus)
+  status: ChallengeStatus;
+
+  @Field({ nullable: true })
+  completedAt?: Date;
+
+  @Field()
+  startedAt: Date;
 }
