@@ -49,6 +49,9 @@ describe('LikeService Integration', () => {
   });
 
   afterAll(async () => {
+    await prisma.like.deleteMany({});
+    await prisma.post.deleteMany({});
+    await prisma.user.deleteMany({});
     await app.close();
   });
 
