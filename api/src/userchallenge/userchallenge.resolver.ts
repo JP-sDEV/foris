@@ -36,13 +36,13 @@ export class UserchallengeResolver {
 
   // Update challenge status
   @Mutation(() => Userchallenge)
-  updateUserChallenge(
+  async updateUserChallenge(
     @Args('updateUserChallengeInput')
     updateUserChallengeInput: UpdateUserChallengeInput,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.userchallengeService.update(
+      return await this.userchallengeService.update(
         updateUserChallengeInput,
         user.sub,
       );
@@ -53,13 +53,13 @@ export class UserchallengeResolver {
   }
 
   @Query(() => Userchallenge, { name: 'userchallenge' })
-  findOne(
+  async findOne(
     @Args('joinUserChallengeInput')
     joinUserChallengeInput: JoinUserChallengeInput,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.userchallengeService.findOne(
+      return await this.userchallengeService.findOne(
         user.sub,
         joinUserChallengeInput.challengeId,
       );
@@ -71,13 +71,16 @@ export class UserchallengeResolver {
 
   @Mutation(() => Userchallenge)
   @UseGuards(GqlAuthGuard)
-  removeUserChallenge(
+  async removeUserChallenge(
     @Args('joinUserChallengeInput')
     joinUserChallengeInput: JoinUserChallengeInput,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.userchallengeService.remove(joinUserChallengeInput, user.sub);
+      return await this.userchallengeService.remove(
+        joinUserChallengeInput,
+        user.sub,
+      );
     } catch (error) {
       console.error('Error removing user challenge:', error);
       throw new Error('Failed to remove user challenge');
