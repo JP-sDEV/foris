@@ -13,13 +13,16 @@ export class UserchallengeResolver {
 
   @Mutation(() => Userchallenge)
   @UseGuards(GqlAuthGuard)
-  joinUserChallenge(
+  async joinUserChallenge(
     @Args('joinUserChallengeInput')
     joinUserChallengeInput: JoinUserChallengeInput,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.userchallengeService.create(joinUserChallengeInput, user.sub);
+      return await this.userchallengeService.create(
+        joinUserChallengeInput,
+        user.sub,
+      );
     } catch (error) {
       console.error('Error joining user challenge:', error);
       throw new Error('Failed to join user challenge');
