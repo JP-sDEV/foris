@@ -3,7 +3,7 @@ import { IsUUID } from 'class-validator';
 
 @InputType()
 export class JoinUserChallengeInput {
-  @Field()
+  @Field(() => String)
   @IsUUID()
   challengeId: string;
 }
