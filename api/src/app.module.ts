@@ -11,6 +11,7 @@ import { LikeModule } from './like/like.module';
 import { UserfollowModule } from './userfollow/userfollow.module';
 import { ChallengeModule } from './challenge/challenge.module';
 import { UserchallengeModule } from './userchallenge/userchallenge.module';
+import { LeagueModule } from './league/league.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { UserchallengeModule } from './userchallenge/userchallenge.module';
     UserfollowModule,
     ChallengeModule,
     UserchallengeModule,
+    LeagueModule,
   ],
 })
 export class AppModule {}
