@@ -1,4 +1,4 @@
-# Social Media API 
+# Social Media API
 
 A GraphQL-based social media API built with NestJS, Prisma, and PostgreSQL. This API provides comprehensive functionality for user management, authentication, posts, comments, likes, and social features like following users.
 
