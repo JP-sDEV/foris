@@ -7,18 +7,20 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateChallengeInput } from './dto/create-challenge.input';
 import { UpdateChallengeInput } from './dto/update-challenge.input';
 
+import { UserService } from '../user/user.service';
+
 @Injectable()
 export class ChallengeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userService: UserService,
+  ) {}
 
   async create(createChallengeInput: CreateChallengeInput, userId: string) {
-    // Optionally verify that the user exists
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.userService.findOneById(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new ForbiddenException('User not found');
     }
 
     return this.prisma.challenge.create({
@@ -29,7 +31,13 @@ export class ChallengeService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
+    const user = await this.userService.findOneById(userId);
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
     const challenge = await this.prisma.challenge.findUnique({
       where: { id },
     });
@@ -46,6 +54,12 @@ export class ChallengeService {
     updateChallengeInput: UpdateChallengeInput,
     userId: string,
   ) {
+    const user = await this.userService.findOneById(userId);
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
     const existing = await this.prisma.challenge.findUnique({
       where: { id },
     });
@@ -65,6 +79,12 @@ export class ChallengeService {
   }
 
   async remove(id: string, userId: string) {
+    const user = await this.userService.findOneById(userId);
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
     const challenge = await this.prisma.challenge.findUnique({
       where: { id },
     });

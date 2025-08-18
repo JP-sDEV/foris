@@ -26,9 +26,13 @@ export class ChallengeResolver {
   }
 
   @Query(() => Challenge)
-  async challenge(@Args('id', { type: () => String }) id: string) {
+  @UseGuards(GqlAuthGuard)
+  async challenge(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: any,
+  ) {
     try {
-      return await this.challengeService.findOne(id);
+      return await this.challengeService.findOne(id, user.sub);
     } catch (error) {
       console.error('Error fetching challenge:', error);
       throw new InternalServerErrorException('Failed to fetch challenge');
