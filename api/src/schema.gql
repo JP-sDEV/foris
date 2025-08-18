@@ -12,8 +12,9 @@ type AuthPayload {
 }
 
 type Challenge {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  createdBy: String!
+  id: ID!
+  name: String!
 }
 
 """Status of a challenge for a user"""
@@ -57,6 +58,14 @@ input CreateCommentInput {
   postId: ID!
 }
 
+input CreateLeagueInput {
+  """Optional description of the league"""
+  description: String
+
+  """Name of the league"""
+  name: String!
+}
+
 input CreateLikeInput {
   """ID of the post to like"""
   postId: String!
@@ -82,6 +91,12 @@ input JoinUserChallengeInput {
   challengeId: String!
 }
 
+type League {
+  createdBy: ID!
+  id: ID!
+  name: String!
+}
+
 type Like {
   post: Post
   postId: String!
@@ -93,6 +108,7 @@ type Mutation {
   createAuth(createAuthInput: CreateAuthInput!): AuthPayload!
   createChallenge(createChallengeInput: CreateChallengeInput!): Challenge!
   createComment(createCommentInput: CreateCommentInput!): Comment!
+  createLeague(createLeagueInput: CreateLeagueInput!): League!
   createLike(createLikeInput: CreateLikeInput!): Like!
   createPost(createPostInput: CreatePostInput!): Post!
   createUser(createUserInput: CreateUserInput!): User!
@@ -102,6 +118,7 @@ type Mutation {
   removeAuth(id: String!): Boolean!
   removeChallenge(id: String!): Challenge!
   removeComment(id: String!): Comment!
+  removeLeague(id: Int!): League!
   removeLike(id: String!): Like!
   removePost(id: String!): Post!
   removeUser(id: String!): User!
@@ -109,6 +126,7 @@ type Mutation {
   unfollowUser(targetUserId: String!): Boolean!
   updateChallenge(updateChallengeInput: UpdateChallengeInput!): Challenge!
   updateComment(updateCommentInput: UpdateCommentInput!): Comment!
+  updateLeague(updateLeagueInput: UpdateLeagueInput!): League!
   updatePost(updatePostInput: UpdatePostInput!): Post!
   updateUser(updateUserInput: UpdateUserInput!): User!
   updateUserChallenge(updateUserChallengeInput: UpdateUserChallengeInput!): Userchallenge!
@@ -131,6 +149,7 @@ type Query {
   getFollowing(userId: String!): [User!]!
   getFollowingCount(userId: String!): Int!
   isFollowing(targetUserId: String!): Boolean!
+  league(id: String!): League!
   like(id: String!): Like!
   post(id: String!): Post!
   user(id: String!): User!
@@ -156,6 +175,15 @@ input UpdateCommentInput {
   content: String
   id: String!
   postId: ID
+}
+
+input UpdateLeagueInput {
+  """Optional description of the league"""
+  description: String
+  id: String!
+
+  """Name of the league"""
+  name: String
 }
 
 input UpdatePostInput {
