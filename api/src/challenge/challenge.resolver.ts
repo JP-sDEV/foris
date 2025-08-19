@@ -39,6 +39,17 @@ export class ChallengeResolver {
     }
   }
 
+  @Query(() => Challenge)
+  @UseGuards(GqlAuthGuard)
+  async findOneById(@Args('id', { type: () => String }) id: string) {
+    try {
+      return await this.challengeService.findOneById(id);
+    } catch (error) {
+      console.error('Error fetching challenge by ID:', error);
+      throw new InternalServerErrorException('Failed to fetch challenge by ID');
+    }
+  }
+
   // Optional: If you plan to implement findAll
   @Query(() => [Challenge])
   async challenges() {

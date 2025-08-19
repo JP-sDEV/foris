@@ -49,6 +49,23 @@ export class ChallengeService {
     return challenge;
   }
 
+  async findOneById(id: string) {
+    const challenge = await this.prisma.challenge.findUnique({
+      where: { id },
+      include: {
+        creator: false, // optional
+        userChallenges: false, // optional: include relations
+        leagueChallenges: false, // optional
+      },
+    });
+
+    if (!challenge) {
+      throw new NotFoundException(`Challenge with id ${id} not found`);
+    }
+
+    return challenge;
+  }
+
   async update(
     id: string,
     updateChallengeInput: UpdateChallengeInput,
