@@ -32,7 +32,7 @@ export class ChallengeResolver {
     @CurrentUser() user: any,
   ) {
     try {
-      return await this.challengeService.findOne(id, user.sub);
+      return await this.challengeService.findOneByIdUser(id, user.sub);
     } catch (error) {
       console.error('Error fetching challenge:', error);
       throw new InternalServerErrorException('Failed to fetch challenge');

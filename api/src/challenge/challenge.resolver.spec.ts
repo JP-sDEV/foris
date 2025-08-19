@@ -8,7 +8,7 @@ import { UpdateChallengeInput } from './dto/update-challenge.input';
 
 const mockChallengeService = {
   create: jest.fn(),
-  findOne: jest.fn(),
+  findOneById: jest.fn(),
   update: jest.fn(),
   remove: jest.fn(),
   findAll: jest.fn(),
@@ -68,43 +68,24 @@ describe('ChallengeResolver', () => {
     });
   });
 
-  describe('findOne', () => {
+  describe('findOneById', () => {
     it('should return a challenge by ID', async () => {
       const id = 'uuid-123';
       const expected = { id, name: 'Challenge Name' };
-      mockChallengeService.findOne.mockResolvedValue(expected);
+      mockChallengeService.findOneById.mockResolvedValue(expected);
 
-      const result = await resolver.challenge(id);
+      const result = await resolver.findOneById(id);
       expect(result).toEqual(expected);
-      expect(mockChallengeService.findOne).toHaveBeenCalledWith(id);
+      expect(mockChallengeService.findOneById).toHaveBeenCalledWith(id);
     });
 
     it('should throw InternalServerErrorException on service error', async () => {
-      mockChallengeService.findOne.mockRejectedValue(new Error('DB error'));
-      await expect(resolver.challenge('uuid-123')).rejects.toThrow(
+      mockChallengeService.findOneById.mockRejectedValue(new Error('DB error'));
+      await expect(resolver.findOneById('uuid-123')).rejects.toThrow(
         InternalServerErrorException,
       );
     });
   });
-
-  // describe('findAll', () => {
-  //   it('should return all challenges', async () => {
-  //     const expected = [{ id: 'ch1' }, { id: 'ch2' }];
-  //     mockChallengeService.findAll.mockResolvedValue(expected);
-
-  //     const result = await resolver.findAll();
-  //     expect(result).toEqual(expected);
-  //     expect(mockChallengeService.findAll).toHaveBeenCalled();
-  //   });
-
-  //   it('should throw InternalServerErrorException on service error', async () => {
-  //     mockChallengeService.findAll.mockRejectedValue(new Error('DB error'));
-
-  //     await expect(resolver.findAll()).rejects.toThrow(
-  //       InternalServerErrorException,
-  //     );
-  //   });
-  // });
 
   describe('updateChallenge', () => {
     it('should call challengeService.update with id, input and user.sub', async () => {

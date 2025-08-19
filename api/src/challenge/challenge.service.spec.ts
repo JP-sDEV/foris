@@ -3,6 +3,7 @@ import { ChallengeService } from './challenge.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import { UserService } from '../user/user.service';
 
 describe('ChallengeService', () => {
   let service: ChallengeService;
@@ -20,6 +21,10 @@ describe('ChallengeService', () => {
     },
   };
 
+  const mockUserService = {
+    findOneById: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -28,6 +33,7 @@ describe('ChallengeService', () => {
           provide: PrismaService,
           useValue: mockPrisma,
         },
+        { provide: UserService, useValue: mockUserService }, // <-- add this
       ],
     }).compile();
 
@@ -42,16 +48,20 @@ describe('ChallengeService', () => {
 
   describe('create', () => {
     it('should throw if user does not exist', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockUserService.findOneById.mockResolvedValue(null); // <-- use mockUserService
 
       await expect(
         service.create({ title: 'Test Challenge' } as any, userId),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(ForbiddenException); // also note: it's ForbiddenException in the service
     });
 
     it('should create a challenge if user exists', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: userId });
-      const challengeData = { id: challengeId, title: 'Test Challenge' };
+      mockUserService.findOneById.mockResolvedValue({ id: userId }); // <-- user exists
+      const challengeData = {
+        id: challengeId,
+        title: 'Test Challenge',
+        createdBy: userId,
+      };
       mockPrisma.challenge.create.mockResolvedValue(challengeData);
 
       const result = await service.create(
@@ -66,11 +76,11 @@ describe('ChallengeService', () => {
     });
   });
 
-  describe('findOne', () => {
+  describe('findOneById', () => {
     it('should throw if challenge not found', async () => {
       mockPrisma.challenge.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne(challengeId)).rejects.toThrow(
+      await expect(service.findOneById(challengeId)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -79,7 +89,7 @@ describe('ChallengeService', () => {
       const challenge = { id: challengeId, title: 'Found Challenge' };
       mockPrisma.challenge.findUnique.mockResolvedValue(challenge);
 
-      const result = await service.findOne(challengeId);
+      const result = await service.findOneById(challengeId);
 
       expect(result).toEqual(challenge);
     });

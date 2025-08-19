@@ -29,6 +29,7 @@ describe('LeagueResolver', () => {
           provide: LeagueService,
           useValue: {
             create: jest.fn(),
+            findOneByIdUser: jest.fn(),
             findOneById: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
@@ -73,12 +74,13 @@ describe('LeagueResolver', () => {
     });
   });
 
-  describe('findOneById', () => {
-    it('should call leagueService.findOneById and return the result', async () => {
-      leagueService.findOneById.mockResolvedValue(mockLeague);
+  describe('findOneByIdUser', () => {
+    it('should call leagueService.findOneByIdUser and return the result', async () => {
+      leagueService.findOneByIdUser.mockResolvedValue(mockLeague); // <- correct method
 
-      const result = await resolver.findOneById('league-1', mockUser);
-      expect(leagueService.findOneById).toHaveBeenCalledWith(
+      const result = await resolver.findOneByIdUser('league-1', mockUser);
+
+      expect(leagueService.findOneByIdUser).toHaveBeenCalledWith(
         'league-1',
         mockUser.sub,
       );
@@ -86,13 +88,13 @@ describe('LeagueResolver', () => {
     });
 
     it('should throw InternalServerErrorException on service failure', async () => {
-      leagueService.findOneById.mockRejectedValue(
+      leagueService.findOneByIdUser.mockRejectedValue(
         new InternalServerErrorException('DB error'),
       );
 
-      await expect(resolver.findOneById('league-1', mockUser)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+      await expect(
+        resolver.findOneByIdUser('league-1', mockUser),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 

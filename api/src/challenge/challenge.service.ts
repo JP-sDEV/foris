@@ -31,7 +31,7 @@ export class ChallengeService {
     });
   }
 
-  async findOne(id: string, userId: string) {
+  async findOneByIdUser(id: string, userId: string) {
     const user = await this.userService.findOneById(userId);
 
     if (!user) {

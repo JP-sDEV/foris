@@ -83,11 +83,11 @@ describe('LeagueService', () => {
     });
   });
 
-  describe('findOneById', () => {
+  describe('findOneByIdUser', () => {
     it('should throw if user does not exist', async () => {
       userService.findOneById.mockResolvedValue(null);
 
-      await expect(service.findOneById(leagueId, userId)).rejects.toThrow(
+      await expect(service.findOneByIdUser(leagueId, userId)).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -103,7 +103,7 @@ describe('LeagueService', () => {
       });
       mockPrisma.league.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOneById(leagueId, userId)).rejects.toThrow(
+      await expect(service.findOneByIdUser(leagueId, userId)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -120,22 +120,15 @@ describe('LeagueService', () => {
       });
       mockPrisma.league.findUnique.mockResolvedValue(league);
 
-      const result = await service.findOneById(leagueId, userId);
+      const result = await service.findOneByIdUser(leagueId, userId);
       expect(result).toEqual(league);
     });
   });
 
   describe('update', () => {
     it('should throw if league not found', async () => {
-      userService.findOneById.mockResolvedValue({
-        id: userId,
-        createdAt: new Date(),
-        name: 'Test User',
-        email: 'test@example.com',
-        bio: 'Test bio',
-        avatarUrl: 'http://example.com/avatar.png',
-      });
-      jest.spyOn(service, 'findOneById').mockResolvedValue(null);
+      userService.findOneById.mockResolvedValue({ id: userId } as any);
+      jest.spyOn(service, 'findOneByIdUser').mockResolvedValue(null); // <-- use findOneByIdUser
 
       await expect(
         service.update({ id: leagueId, name: 'Updated' } as any, userId),
@@ -143,17 +136,10 @@ describe('LeagueService', () => {
     });
 
     it('should throw if user is not the owner', async () => {
-      userService.findOneById.mockResolvedValue({
-        id: userId,
-        createdAt: new Date(),
-        name: 'Test User',
-        email: 'test@example.com',
-        bio: 'Test bio',
-        avatarUrl: 'http://example.com/avatar.png',
-      });
+      userService.findOneById.mockResolvedValue({ id: userId } as any);
       jest
-        .spyOn(service, 'findOneById')
-        .mockResolvedValue({ id: leagueId, createdBy: 'other-user' } as any);
+        .spyOn(service, 'findOneByIdUser')
+        .mockResolvedValue({ id: leagueId, createdBy: 'other-user' } as any); // <-- use findOneByIdUser
 
       await expect(
         service.update({ id: leagueId, name: 'Updated' } as any, userId),
@@ -194,8 +180,7 @@ describe('LeagueService', () => {
         bio: 'Test bio',
         avatarUrl: 'http://example.com/avatar.png',
       });
-      jest.spyOn(service, 'findOneById').mockResolvedValue(null);
-
+      jest.spyOn(service, 'findOneByIdUser').mockResolvedValue(null); // league not found
       await expect(service.remove(leagueId, userId)).rejects.toThrow(
         NotFoundException,
       );
@@ -211,9 +196,8 @@ describe('LeagueService', () => {
         avatarUrl: 'http://example.com/avatar.png',
       });
       jest
-        .spyOn(service, 'findOneById')
-        .mockResolvedValue({ id: leagueId, createdBy: 'someone-else' } as any);
-
+        .spyOn(service, 'findOneByIdUser')
+        .mockResolvedValue({ id: leagueId, createdBy: 'someone-else' } as any); // unauthorized
       await expect(service.remove(leagueId, userId)).rejects.toThrow(
         ForbiddenException,
       );
