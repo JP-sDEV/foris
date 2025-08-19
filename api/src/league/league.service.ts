@@ -36,7 +36,7 @@ export class LeagueService {
   //   return `This action returns all league`;
   // }
 
-  async findOneById(id: string, userId: string) {
+  async findOneByIdUser(id: string, userId: string) {
     const user = await this.userService.findOneById(userId);
 
     if (!user) {
@@ -54,9 +54,26 @@ export class LeagueService {
     return league;
   }
 
+  async findOneById(id: string) {
+    const league = await this.prisma.league.findUnique({
+      where: { id },
+      include: {
+        creator: false, // optional, if you want creator info
+        leagueChallenges: false, // optional
+        LeagueUser: false, // optional
+      },
+    });
+
+    if (!league) {
+      throw new NotFoundException(`League with ID ${id} not found`);
+    }
+
+    return league;
+  }
+
   async update(updateLeagueInput: UpdateLeagueInput, userId: string) {
     const user = await this.userService.findOneById(userId);
-    const league = await this.findOneById(updateLeagueInput.id, userId);
+    const league = await this.findOneByIdUser(updateLeagueInput.id, userId);
 
     if (!league) {
       throw new NotFoundException('League not found');
@@ -74,7 +91,7 @@ export class LeagueService {
 
   async remove(id: string, userId: string) {
     const user = await this.userService.findOneById(userId);
-    const league = await this.findOneById(id, userId);
+    const league = await this.findOneByIdUser(id, userId);
 
     if (!league) {
       throw new NotFoundException('League not found');

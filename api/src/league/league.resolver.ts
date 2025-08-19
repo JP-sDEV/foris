@@ -32,12 +32,23 @@ export class LeagueResolver {
 
   @Query(() => League, { name: 'league' })
   @UseGuards(GqlAuthGuard)
-  findOneById(
+  findOneByIdUser(
     @Args('id', { type: () => String }) id: string,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.leagueService.findOneById(id, user.sub);
+      return this.leagueService.findOneByIdUser(id, user.sub);
+    } catch (error) {
+      console.error('Error finding league:', error);
+      throw new InternalServerErrorException('Failed to find league');
+    }
+  }
+
+  @Query(() => League)
+  @UseGuards(GqlAuthGuard)
+  async findLeagueById(@Args('id', { type: () => String }) id: string) {
+    try {
+      return this.leagueService.findOneById(id);
     } catch (error) {
       console.error('Error finding league:', error);
       throw new InternalServerErrorException('Failed to find league');
