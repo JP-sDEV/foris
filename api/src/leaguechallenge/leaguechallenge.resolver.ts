@@ -1,35 +1,52 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { LeaguechallengeService } from './leaguechallenge.service';
 import { Leaguechallenge } from './entities/leaguechallenge.entity';
 import { CreateLeaguechallengeInput } from './dto/create-leaguechallenge.input';
 import { UpdateLeaguechallengeInput } from './dto/update-leaguechallenge.input';
+import { GqlAuthGuard } from '../auth/auth.guard';
+import { UseGuards } from '@nestjs/common';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Resolver(() => Leaguechallenge)
 export class LeaguechallengeResolver {
-  constructor(private readonly leaguechallengeService: LeaguechallengeService) {}
+  constructor(
+    private readonly leaguechallengeService: LeaguechallengeService,
+  ) {}
+
+  // add challenge to a league
+  @Mutation(() => Leaguechallenge)
+  @UseGuards(GqlAuthGuard)
+  addLeaguechallenge(
+    @Args('createLeaguechallengeInput')
+    createLeaguechallengeInput: CreateLeaguechallengeInput,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      return this.leaguechallengeService.create(
+        createLeaguechallengeInput,
+        user.sub,
+      );
+    } catch (error) {
+      console.error('Error adding challenge to league:', error);
+      throw new Error('Failed adding challenge to league');
+    }
+  }
 
   @Mutation(() => Leaguechallenge)
-  createLeaguechallenge(@Args('createLeaguechallengeInput') createLeaguechallengeInput: CreateLeaguechallengeInput) {
-    return this.leaguechallengeService.create(createLeaguechallengeInput);
-  }
-
-  @Query(() => [Leaguechallenge], { name: 'leaguechallenge' })
-  findAll() {
-    return this.leaguechallengeService.findAll();
-  }
-
-  @Query(() => Leaguechallenge, { name: 'leaguechallenge' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.leaguechallengeService.findOne(id);
-  }
-
-  @Mutation(() => Leaguechallenge)
-  updateLeaguechallenge(@Args('updateLeaguechallengeInput') updateLeaguechallengeInput: UpdateLeaguechallengeInput) {
-    return this.leaguechallengeService.update(updateLeaguechallengeInput.id, updateLeaguechallengeInput);
-  }
-
-  @Mutation(() => Leaguechallenge)
-  removeLeaguechallenge(@Args('id', { type: () => Int }) id: number) {
-    return this.leaguechallengeService.remove(id);
+  @UseGuards(GqlAuthGuard)
+  removeLeaguechallenge(
+    @Args('updateLeaguechallengeInput')
+    createLeaguechallengeInput: UpdateLeaguechallengeInput,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      return this.leaguechallengeService.remove(
+        createLeaguechallengeInput,
+        user.sub,
+      );
+    } catch (error) {
+      console.error('Error removing challenge from league:', error);
+      throw new Error('Failed removing challenge from league');
+    }
   }
 }
