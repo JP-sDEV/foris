@@ -1,4 +1,6 @@
 import { ObjectType, Field } from '@nestjs/graphql';
+import { League } from '../../league/entities/league.entity';
+import { Challenge } from '../../challenge/entities/challenge.entity';
 
 @ObjectType()
 export class Leaguechallenge {
@@ -8,10 +10,9 @@ export class Leaguechallenge {
   @Field(() => String)
   challengeId: string;
 
-  // Optional: include relations if needed in tests or GraphQL
-  @Field(() => Object, { nullable: true })
-  league?: any;
+  @Field(() => League, { nullable: true })
+  league?: League;
 
-  @Field(() => Object, { nullable: true })
-  challenge?: any;
+  @Field(() => Challenge, { nullable: true })
+  challenge?: Challenge;
 }
