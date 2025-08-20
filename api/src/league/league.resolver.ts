@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { LeagueService } from './league.service';
 import { League } from './entities/league.entity';
 import { CreateLeagueInput } from './dto/create-league.input';
@@ -13,12 +13,12 @@ export class LeagueResolver {
 
   @Mutation(() => League)
   @UseGuards(GqlAuthGuard)
-  createLeague(
+  async createLeague(
     @Args('createLeagueInput') createLeagueInput: CreateLeagueInput,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.leagueService.create(createLeagueInput, user.sub);
+      return await this.leagueService.create(createLeagueInput, user.sub);
     } catch (error) {
       console.error('Error creating league:', error);
       throw new InternalServerErrorException('Failed to create league');
@@ -32,12 +32,12 @@ export class LeagueResolver {
 
   @Query(() => League, { name: 'league' })
   @UseGuards(GqlAuthGuard)
-  findOneByIdUser(
+  async findOneByIdUser(
     @Args('id', { type: () => String }) id: string,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.leagueService.findOneByIdUser(id, user.sub);
+      return await this.leagueService.findOneByIdUser(id, user.sub);
     } catch (error) {
       console.error('Error finding league:', error);
       throw new InternalServerErrorException('Failed to find league');
@@ -57,12 +57,12 @@ export class LeagueResolver {
 
   @Mutation(() => League)
   @UseGuards(GqlAuthGuard)
-  updateLeague(
+  async updateLeague(
     @Args('updateLeagueInput') updateLeagueInput: UpdateLeagueInput,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.leagueService.update(updateLeagueInput, user.sub);
+      return await this.leagueService.update(updateLeagueInput, user.sub);
     } catch (error) {
       console.error('Error updating league:', error);
       throw new InternalServerErrorException('Failed to update league');
@@ -71,12 +71,12 @@ export class LeagueResolver {
 
   @Mutation(() => League)
   @UseGuards(GqlAuthGuard)
-  removeLeague(
-    @Args('id', { type: () => Int }) id: string,
+  async removeLeague(
+    @Args('id', { type: () => ID }) id: string,
     @CurrentUser() user: any,
   ) {
     try {
-      return this.leagueService.remove(id, user.sub);
+      return await this.leagueService.remove(id, user.sub);
     } catch (error) {
       console.error('Error deleting league:', error);
       throw new InternalServerErrorException('Failed to delete league');
