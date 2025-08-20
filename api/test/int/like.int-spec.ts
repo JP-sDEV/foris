@@ -1,22 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LikeService } from '../../src/like/like.service';
-import { PrismaService } from '../../src/prisma/prisma.service';
-import { PostService } from '../../src/post/post.service';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { InternalServerErrorException } from '@nestjs/common';
+import { PrismaService } from '../../src/prisma/prisma.service';
+import { v4 as uuidv4 } from 'uuid';
+import { JwtService } from '@nestjs/jwt';
 
-describe('LikeService Integration', () => {
-  let app;
-  let likeService: LikeService;
+describe('LikeModule (integration)', () => {
+  let app: INestApplication;
   let prisma: PrismaService;
-  let postService: PostService;
-
+  let jwtService: JwtService;
   let userId: string;
   let postId: string;
+  let token: string;
 
   beforeAll(async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {}); // suppress logs
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -24,96 +22,189 @@ describe('LikeService Integration', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    likeService = app.get(LikeService);
     prisma = app.get(PrismaService);
-    postService = app.get(PostService);
+    jwtService = app.get(JwtService);
 
-    // Clean up likes, posts, users
-    await prisma.like.deleteMany({});
-    await prisma.post.deleteMany({});
-    await prisma.user.deleteMany({});
+    // Clean database
+    await prisma.like.deleteMany();
+    await prisma.post.deleteMany();
+    await prisma.user.deleteMany();
 
-    // Seed a user
+    // Seed user
     const user = await prisma.user.create({
-      data: { email: 'test@example.com', name: 'Test User' },
+      data: { id: uuidv4(), email: 'test@example.com', name: 'Test User' },
     });
     userId = user.id;
 
-    // Seed a post
-    const post = await postService.create({
-      title: 'Test Post',
-      content: 'Post content',
-      authorId: userId,
+    // Seed post
+    const post = await prisma.post.create({
+      data: {
+        id: uuidv4(),
+        title: 'Test Post',
+        content: 'Test content',
+        authorId: userId,
+      },
     });
     postId = post.id;
+
+    // Create JWT token
+    token = jwtService.sign(
+      { sub: userId },
+      { secret: process.env.JWT_SECRET },
+    );
   });
 
   afterAll(async () => {
-    await prisma.like.deleteMany({});
-    await prisma.post.deleteMany({});
-    await prisma.user.deleteMany({});
+    await prisma.like.deleteMany();
+    await prisma.post.deleteMany();
+    await prisma.user.deleteMany();
     await app.close();
   });
 
-  describe('create', () => {
-    it('should create and return a like', async () => {
-      const like = await likeService.create(userId, { postId });
+  it('should create a like', async () => {
+    const mutation = `
+      mutation CreateLike($input: CreateLikeInput!) {
+        createLike(createLikeInput: $input) {
+          userId
+          postId
+          user { id email }
+          post { id title }
+        }
+      }
+    `;
 
-      expect(like).toBeDefined();
-      expect(like.userId).toBe(userId);
-      expect(like.postId).toBe(postId);
-      expect(like.user).toBeDefined();
-      expect(like.post).toBeDefined();
+    const variables = { input: { postId } };
+
+    const response = await request(app.getHttpServer())
+      .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ query: mutation, variables });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.createLike).toMatchObject({
+      userId,
+      postId,
     });
+    expect(response.body.data.createLike.user).toBeDefined();
+    expect(response.body.data.createLike.post).toBeDefined();
+  });
 
-    it('should throw InternalServerErrorException if post does not exist', async () => {
-      await expect(
-        likeService.create(userId, { postId: 'nonexistent-post' }),
-      ).rejects.toThrow(InternalServerErrorException);
+  it('should find a like', async () => {
+    const query = `
+      query FindLike($id: String!) {
+        like(id: $id) {
+          userId
+          postId
+        }
+      }
+    `;
+
+    const variables = { id: postId };
+
+    const response = await request(app.getHttpServer())
+      .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ query, variables });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.like).toMatchObject({
+      userId,
+      postId,
     });
   });
 
-  describe('findOne', () => {
-    it('should find an existing like', async () => {
-      const like = await likeService.findOne(userId, postId);
+  it('should remove a like', async () => {
+    const mutation = `
+      mutation RemoveLike($id: String!) {
+        removeLike(id: $id) {
+          userId
+          postId
+        }
+      }
+    `;
 
-      expect(like).toBeDefined();
-      expect(like.userId).toBe(userId);
-      expect(like.postId).toBe(postId);
+    const variables = { id: postId };
+
+    const response = await request(app.getHttpServer())
+      .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ query: mutation, variables });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.removeLike).toMatchObject({
+      userId,
+      postId,
     });
-    it('should return null if like does not exist', async () => {
-      const fakePostId = '00000000-0000-0000-0000-000000000000';
 
-      const result = await likeService.findOne(userId, fakePostId);
+    // Confirm deletion
+    const findResponse = await request(app.getHttpServer())
+      .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        query: `
+            query FindLike($id: String!) {
+              like(id: $id) { userId postId }
+            }
+          `,
+        variables: { id: postId },
+      });
 
-      expect(result).toBeNull();
-    });
+    console.log('Find Response: ', findResponse.body);
+
+    expect(findResponse.status).toBe(200);
+    expect(findResponse.body.data.like).toBeNull();
   });
 
-  describe('remove', () => {
-    it('should remove an existing like', async () => {
-      // Ensure a clean state
-      await likeService.remove(userId, postId).catch(() => {});
+  describe('Unauthorized requests', () => {
+    it('should reject createLike without auth', async () => {
+      const mutation = `
+        mutation CreateLike($input: CreateLikeInput!) {
+          createLike(createLikeInput: $input) {
+            userId
+            postId
+          }
+        }
+      `;
+      const response = await request(app.getHttpServer())
+        .post('/api/graphql')
+        .send({ query: mutation, variables: { input: { postId } } });
 
-      // Create a like
-      await likeService.create(userId, { postId });
-
-      // Remove the like
-      const removed = await likeService.remove(userId, postId);
-
-      expect(removed).toBeDefined();
-      expect(removed.userId).toBe(userId);
-      expect(removed.postId).toBe(postId);
-
-      // After removal, findOne should return null
-      const like = await likeService.findOne(userId, postId);
-      expect(like).toBeNull();
+      expect(response.status).toBe(200);
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0].message).toBe('No authorization header');
+      expect(response.body.data).toBeNull();
     });
 
-    it('should throw InternalServerErrorException if like does not exist', async () => {
-      await expect(
-        likeService.findOne(userId, 'nonexistent-post'),
-      ).rejects.toThrow(InternalServerErrorException);
+    it('should reject findOne without auth', async () => {
+      const query = `
+        query FindLike($id: String!) {
+          like(id: $id) { userId postId }
+        }
+      `;
+      const response = await request(app.getHttpServer())
+        .post('/api/graphql')
+        .send({ query, variables: { id: postId } });
+
+      expect(response.status).toBe(200);
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0].message).toBe('No authorization header');
+      expect(response.body.data.like).toBeNull();
+    });
+
+    it('should reject removeLike without auth', async () => {
+      const mutation = `
+        mutation RemoveLike($id: String!) {
+          removeLike(id: $id) { userId postId }
+        }
+      `;
+      const response = await request(app.getHttpServer())
+        .post('/api/graphql')
+        .send({ query: mutation, variables: { id: postId } });
+
+      expect(response.status).toBe(200);
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors[0].message).toBe('No authorization header');
+      expect(response.body.data).toBeNull();
     });
   });
 });
