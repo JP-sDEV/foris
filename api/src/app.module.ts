@@ -16,6 +16,7 @@ import { ChallengeModule } from './challenge/challenge.module';
 import { UserchallengeModule } from './userchallenge/userchallenge.module';
 import { LeagueModule } from './league/league.module';
 import { LeaguechallengeModule } from './leaguechallenge/leaguechallenge.module';
+import { LeagueuserModule } from './leagueuser/leagueuser.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { LeaguechallengeModule } from './leaguechallenge/leaguechallenge.module'
     UserchallengeModule,
     LeagueModule,
     LeaguechallengeModule,
+    LeagueuserModule,
   ],
   providers: [PrismaService],
 })
