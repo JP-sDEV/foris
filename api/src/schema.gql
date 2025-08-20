@@ -134,7 +134,7 @@ type Mutation {
   removeAuth(id: String!): Boolean!
   removeChallenge(id: String!): Challenge!
   removeComment(id: String!): Comment!
-  removeLeague(id: Int!): League!
+  removeLeague(id: ID!): League!
   removeLeaguechallenge(updateLeaguechallengeInput: UpdateLeaguechallengeInput!): Leaguechallenge!
   removeLike(id: String!): Like!
   removePost(id: String!): Post!
@@ -169,7 +169,7 @@ type Query {
   getFollowingCount(userId: String!): Int!
   isFollowing(targetUserId: String!): Boolean!
   league(id: String!): League!
-  like(id: String!): Like!
+  like(id: String!): Like
   post(id: String!): Post!
   user(id: String!): User!
   userPosts(userId: String!): [Post!]!
