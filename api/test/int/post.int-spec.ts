@@ -67,7 +67,7 @@ describe('PostModule (integration)', () => {
       `;
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query });
 
     expect(response.status).toBe(200);
@@ -91,10 +91,12 @@ describe('PostModule (integration)', () => {
         }
 `;
 
-    const response = await request(app.getHttpServer()).post('/graphql').send({
-      query,
-      variables: { userId },
-    });
+    const response = await request(app.getHttpServer())
+      .post('/api/graphql')
+      .send({
+        query,
+        variables: { userId },
+      });
 
     // console.error(response.body.errors);
 
@@ -127,7 +129,7 @@ describe('PostModule (integration)', () => {
     };
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables });
 
     // console.error(response.body.errors);
@@ -151,7 +153,7 @@ describe('PostModule (integration)', () => {
 
     // Remove the post
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables: { id: postId } });
 
     expect(response.status).toBe(200);
@@ -167,7 +169,7 @@ describe('PostModule (integration)', () => {
   `;
 
     const confirmResponse = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: confirmQuery });
 
     expect(confirmResponse.status).toBe(200);
@@ -190,7 +192,7 @@ describe('PostModule (integration)', () => {
     `;
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query });
 
     expect(response.status).toBe(200);
@@ -222,7 +224,7 @@ describe('PostModule (integration)', () => {
     };
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables });
 
     expect(response.status).toBe(200);
@@ -244,7 +246,7 @@ describe('PostModule (integration)', () => {
     `;
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables: { id: nonExistentId } });
 
     expect(response.status).toBe(200);

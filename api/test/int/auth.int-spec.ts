@@ -72,7 +72,7 @@ describe('AuthService Integration (OAuth)', () => {
     };
 
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables });
 
     expect(res.status).toBe(200);
@@ -129,7 +129,7 @@ describe('AuthService Integration (OAuth)', () => {
     `;
 
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({
         query: mutation,
         variables: {
@@ -160,7 +160,7 @@ describe('AuthService Integration (OAuth)', () => {
     const fakeId = '11111111-1111-1111-1111-111111111111'; // valid UUID format
 
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables: { id: fakeId } });
 
     expect(res.status).toBe(200);
@@ -200,7 +200,7 @@ describe('AuthService Integration (OAuth)', () => {
   `;
 
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables: { id: oauthAccountId } });
 
     // console.error(res.body);
@@ -223,7 +223,7 @@ describe('AuthService Integration (OAuth)', () => {
     `;
 
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .send({ query: mutation, variables: { token: 'invalid-token' } });
 
     expect(res.status).toBe(200);

@@ -50,7 +50,7 @@ describe('CommentModule (integration)', () => {
 
   it('creates a comment', async () => {
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({
         query: `
@@ -74,7 +74,7 @@ describe('CommentModule (integration)', () => {
 
   it('fetches the created comment', async () => {
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({
         query: `
@@ -95,7 +95,7 @@ describe('CommentModule (integration)', () => {
 
   it('updates the comment', async () => {
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({
         query: `
@@ -116,7 +116,7 @@ describe('CommentModule (integration)', () => {
 
   it('deletes the comment', async () => {
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({
         query: `
@@ -133,7 +133,7 @@ describe('CommentModule (integration)', () => {
 
   it('throws error when creating a comment on a non-existent post', async () => {
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({
         query: `
@@ -155,7 +155,7 @@ describe('CommentModule (integration)', () => {
 
   it('throws error when updating a non-existent comment', async () => {
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({
         query: `
@@ -193,7 +193,7 @@ describe('CommentModule (integration)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${otherToken}`)
       .send({
         query: `
@@ -216,7 +216,7 @@ describe('CommentModule (integration)', () => {
 
   it('throws error when deleting a non-existent comment', async () => {
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({
         query: `
@@ -249,7 +249,7 @@ describe('CommentModule (integration)', () => {
     const otherToken = jwtService.sign({ sub: otherUser.id });
 
     const res = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${otherToken}`)
       .send({
         query: `

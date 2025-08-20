@@ -2,6 +2,9 @@ import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaService } from './prisma/prisma.service';
+
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionModule } from './session/session.module';
@@ -16,13 +19,13 @@ import { LeaguechallengeModule } from './leaguechallenge/leaguechallenge.module'
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
-      context: ({ req }) => {
-        return { req };
-      },
+      path: '/api/graphql',
+      context: ({ req }) => ({ req }),
     }),
     UserModule,
     AuthModule,
@@ -36,5 +39,6 @@ import { LeaguechallengeModule } from './leaguechallenge/leaguechallenge.module'
     LeagueModule,
     LeaguechallengeModule,
   ],
+  providers: [PrismaService],
 })
 export class AppModule {}

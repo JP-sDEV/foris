@@ -68,7 +68,7 @@ describe('ChallengeModule (integration)', () => {
     const variables = { input: { name: 'Integration Test Challenge' } };
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({ query: mutation, variables });
 
@@ -93,7 +93,7 @@ describe('ChallengeModule (integration)', () => {
       `;
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({ query, variables: { id: challengeId } });
 
@@ -118,7 +118,7 @@ describe('ChallengeModule (integration)', () => {
     const variables = { input: { id: challengeId, name: 'Updated Challenge' } };
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({ query: mutation, variables });
 
@@ -141,7 +141,7 @@ describe('ChallengeModule (integration)', () => {
       `;
 
     const response = await request(app.getHttpServer())
-      .post('/graphql')
+      .post('/api/graphql')
       .set('Authorization', `Bearer ${token}`)
       .send({ query: mutation, variables: { id: challengeId } });
 
@@ -166,7 +166,7 @@ describe('ChallengeModule (integration)', () => {
       const variables = { input: { name: 'Unauthorized Challenge' } };
 
       const response = await request(app.getHttpServer())
-        .post('/graphql')
+        .post('/api/graphql')
         .send({ query: mutation, variables });
 
       expect(response.status).toBe(200);
@@ -183,7 +183,7 @@ describe('ChallengeModule (integration)', () => {
         }
       `;
       const response = await request(app.getHttpServer())
-        .post('/graphql')
+        .post('/api/graphql')
         .send({ query: mutation, variables: { id: challengeId } });
 
       expect(response.status).toBe(200);
@@ -202,7 +202,7 @@ describe('ChallengeModule (integration)', () => {
       const variables = { input: { id: challengeId, name: 'Hacked Name' } };
 
       const response = await request(app.getHttpServer())
-        .post('/graphql')
+        .post('/api/graphql')
         .send({ query: mutation, variables });
 
       expect(response.status).toBe(200);
@@ -228,7 +228,7 @@ describe('ChallengeModule (integration)', () => {
     `;
 
       const response = await request(app.getHttpServer())
-        .post('/graphql')
+        .post('/api/graphql')
         .set('Authorization', `Bearer ${otherToken}`)
         .send({ query: mutation, variables: { id: challengeId } });
 
@@ -258,7 +258,7 @@ describe('ChallengeModule (integration)', () => {
       const variables = { input: { id: challengeId, name: 'Hacked Name' } };
 
       const response = await request(app.getHttpServer())
-        .post('/graphql')
+        .post('/api/graphql')
         .set('Authorization', `Bearer ${otherToken}`)
         .send({ query: mutation, variables });
 
