@@ -4,7 +4,7 @@ import { LeaguechallengeResolver } from './leaguechallenge.resolver';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
 import { ChallengeModule } from '../challenge/challenge.module';
-import { LeagueModule } from 'src/league/league.module';
+import { LeagueModule } from '../league/league.module';
 
 @Module({
   imports: [

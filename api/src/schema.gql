@@ -66,6 +66,14 @@ input CreateLeagueInput {
   name: String!
 }
 
+input CreateLeaguechallengeInput {
+  """ID of the challenge"""
+  challengeId: String!
+
+  """ID of the league"""
+  leagueId: String!
+}
+
 input CreateLikeInput {
   """ID of the post to like"""
   postId: String!
@@ -97,6 +105,13 @@ type League {
   name: String!
 }
 
+type Leaguechallenge {
+  challenge: Challenge
+  challengeId: String!
+  league: League
+  leagueId: String!
+}
+
 type Like {
   post: Post
   postId: String!
@@ -105,6 +120,7 @@ type Like {
 }
 
 type Mutation {
+  addLeaguechallenge(createLeaguechallengeInput: CreateLeaguechallengeInput!): Leaguechallenge!
   createAuth(createAuthInput: CreateAuthInput!): AuthPayload!
   createChallenge(createChallengeInput: CreateChallengeInput!): Challenge!
   createComment(createCommentInput: CreateCommentInput!): Comment!
@@ -119,6 +135,7 @@ type Mutation {
   removeChallenge(id: String!): Challenge!
   removeComment(id: String!): Comment!
   removeLeague(id: Int!): League!
+  removeLeaguechallenge(updateLeaguechallengeInput: UpdateLeaguechallengeInput!): Leaguechallenge!
   removeLike(id: String!): Like!
   removePost(id: String!): Post!
   removeUser(id: String!): User!
@@ -144,6 +161,8 @@ type Query {
   challenge(id: String!): Challenge!
   challenges: [Challenge!]!
   comment(id: String!): Comment!
+  findLeagueById(id: String!): League!
+  findOneById(id: String!): Challenge!
   getFollowerCount(userId: String!): Int!
   getFollowers(userId: String!): [User!]!
   getFollowing(userId: String!): [User!]!
@@ -184,6 +203,11 @@ input UpdateLeagueInput {
 
   """Name of the league"""
   name: String
+}
+
+input UpdateLeaguechallengeInput {
+  challengeId: String!
+  leagueId: String!
 }
 
 input UpdatePostInput {
