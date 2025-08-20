@@ -24,7 +24,7 @@ export class LikeResolver {
     }
   }
 
-  @Query(() => Like, { name: 'like' })
+  @Query(() => Like, { name: 'like', nullable: true })
   @UseGuards(GqlAuthGuard)
   async findOne(
     @Args('id', { type: () => String }) id: string,
