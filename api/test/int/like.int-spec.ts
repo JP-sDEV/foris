@@ -149,8 +149,6 @@ describe('LikeModule (integration)', () => {
         variables: { id: postId },
       });
 
-    console.log('Find Response: ', findResponse.body);
-
     expect(findResponse.status).toBe(200);
     expect(findResponse.body.data.like).toBeNull();
   });
