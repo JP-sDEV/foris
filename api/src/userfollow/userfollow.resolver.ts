@@ -14,11 +14,11 @@ export class UserfollowResolver {
   @UseGuards(GqlAuthGuard)
   async followUser(
     @Args('targetUserId') targetUserId: string,
-    @CurrentUser() currentUser: User,
+    @CurrentUser() currentUser: any,
   ): Promise<boolean> {
     try {
       return await this.userfollowService.followUser(
-        currentUser.id,
+        currentUser.sub,
         targetUserId,
       );
     } catch (error) {
@@ -31,11 +31,11 @@ export class UserfollowResolver {
   @UseGuards(GqlAuthGuard)
   async unfollowUser(
     @Args('targetUserId') targetUserId: string,
-    @CurrentUser() currentUser: User,
+    @CurrentUser() currentUser: any,
   ): Promise<boolean> {
     try {
       return await this.userfollowService.unfollowUser(
-        currentUser.id,
+        currentUser.sub,
         targetUserId,
       );
     } catch (error) {
@@ -88,11 +88,11 @@ export class UserfollowResolver {
   @UseGuards(GqlAuthGuard)
   async isFollowing(
     @Args('targetUserId') targetUserId: string,
-    @CurrentUser() currentUser: User,
+    @CurrentUser() currentUser: any,
   ): Promise<boolean> {
     try {
       return await this.userfollowService.isFollowing(
-        currentUser.id,
+        currentUser.sub,
         targetUserId,
       );
     } catch (error) {
