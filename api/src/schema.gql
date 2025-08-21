@@ -74,6 +74,10 @@ input CreateLeaguechallengeInput {
   leagueId: String!
 }
 
+input CreateLeagueuserInput {
+  leagueId: String!
+}
+
 input CreateLikeInput {
   """ID of the post to like"""
   postId: String!
@@ -112,6 +116,16 @@ type Leaguechallenge {
   leagueId: String!
 }
 
+type Leagueuser {
+  createdAt: DateTime!
+  id: ID!
+  league: League
+  leagueId: String!
+  updatedAt: DateTime!
+  user: User
+  userId: String!
+}
+
 type Like {
   post: Post
   postId: String!
@@ -125,6 +139,7 @@ type Mutation {
   createChallenge(createChallengeInput: CreateChallengeInput!): Challenge!
   createComment(createCommentInput: CreateCommentInput!): Comment!
   createLeague(createLeagueInput: CreateLeagueInput!): League!
+  createLeagueuser(createLeagueuserInput: CreateLeagueuserInput!): Leagueuser!
   createLike(createLikeInput: CreateLikeInput!): Like!
   createPost(createPostInput: CreatePostInput!): Post!
   createUser(createUserInput: CreateUserInput!): User!
@@ -136,6 +151,7 @@ type Mutation {
   removeComment(id: String!): Comment!
   removeLeague(id: ID!): League!
   removeLeaguechallenge(updateLeaguechallengeInput: UpdateLeaguechallengeInput!): Leaguechallenge!
+  removeLeagueuser(leagueId: String!, userId: String!): RemoveLeagueuserResponse!
   removeLike(id: String!): Like!
   removePost(id: String!): Post!
   removeUser(id: String!): User!
@@ -169,11 +185,20 @@ type Query {
   getFollowingCount(userId: String!): Int!
   isFollowing(targetUserId: String!): Boolean!
   league(id: String!): League!
+  leagueuser(leagueId: String!, userId: String!): Leagueuser!
+  leagueusers(createLeagueuserInput: CreateLeagueuserInput!): [Leagueuser!]!
   like(id: String!): Like
+  me: User!
   post(id: String!): Post!
   user(id: String!): User!
   userPosts(userId: String!): [Post!]!
   userchallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
+}
+
+type RemoveLeagueuserResponse {
+  leagueId: ID!
+  message: String!
+  userId: ID!
 }
 
 input UpdateChallengeInput {
