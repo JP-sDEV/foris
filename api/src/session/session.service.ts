@@ -89,6 +89,19 @@ export class SessionService {
     return session;
   }
 
+  async removeByRefeshToken(refreshToken: string) {
+    // Ensure session exists before attempting to remove
+    const session = await this.prisma.session.findUnique({
+      where: { refreshToken },
+    });
+    if (!session) {
+      throw new Error('Session not found');
+    }
+    await this.prisma.session.delete({ where: { refreshToken } });
+
+    // Optionally, you can return the deleted session or a success message
+    return session;
+  }
   generateSecureToken(): string {
     return randomBytes(32).toString('hex');
   }
