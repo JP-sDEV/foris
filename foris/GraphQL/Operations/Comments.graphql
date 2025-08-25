@@ -1,0 +1,66 @@
+# Comment operations for Foris app
+
+# Get comment by ID
+query GetComment($id: String!) {
+  comment(id: $id) {
+    id
+    content
+    createdAt
+    updatedAt
+    user {
+      id
+      name
+      avatarUrl
+    }
+    post {
+      id
+      title
+    }
+  }
+}
+
+# Create a new comment
+mutation CreateComment($input: CreateCommentInput!) {
+  createComment(createCommentInput: $input) {
+    id
+    content
+    createdAt
+    updatedAt
+    user {
+      id
+      name
+      avatarUrl
+    }
+    post {
+      id
+      title
+    }
+  }
+}
+
+# Update a comment
+mutation UpdateComment($input: UpdateCommentInput!) {
+  updateComment(updateCommentInput: $input) {
+    id
+    content
+    createdAt
+    updatedAt
+    user {
+      id
+      name
+      avatarUrl
+    }
+    post {
+      id
+      title
+    }
+  }
+}
+
+# Delete a comment
+mutation DeleteComment($id: String!) {
+  removeComment(id: $id) {
+    id
+    content
+  }
+}

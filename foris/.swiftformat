@@ -1,0 +1,121 @@
+# SwiftFormat configuration for Foris iOS App
+
+# File options
+--exclude Pods,build,DerivedData,GraphQL/Generated,fastlane
+
+# Format options
+--indent 4
+--indentcase false
+--trimwhitespace always
+--insertlines true
+--removelines true
+--allman false
+--wraparguments preserve
+--wrapparameters preserve
+--wrapcollections preserve
+--closingparen balanced
+--wraptypealiases preserve
+--wrapreturntype preserve
+--wraptypealiases preserve
+--funcattributes prev-line
+--typeattributes prev-line
+--varattributes same-line
+--storedvarattrs same-line
+--computedvarattrs same-line
+--complexattributes prev-line
+--nonisolatedattributes same-line
+
+# Spacing
+--commas always
+--semicolons never
+--ranges spaced
+--comments indent
+--linebreaks lf
+
+# Wrapping
+--maxwidth 120
+--assetliterals visual-width
+--wrapternary default
+
+# Rules to enable
+--enable isEmpty
+--enable sortedImports
+--enable duplicateImports
+--enable unusedArguments
+--enable hoistPatternLet
+--enable redundantSelf
+--enable redundantReturn
+--enable redundantBackticks
+--enable redundantBreak
+--enable redundantExtensionACL
+--enable redundantFileprivate
+--enable redundantGet
+--enable redundantInit
+--enable redundantLet
+--enable redundantLetError
+--enable redundantNilInit
+--enable redundantObjc
+--enable redundantParens
+--enable redundantPattern
+--enable redundantRawValues
+--enable redundantType
+--enable redundantVoidReturnType
+--enable spaceAroundBraces
+--enable spaceAroundBrackets
+--enable spaceAroundComments
+--enable spaceAroundGenerics
+--enable spaceAroundOperators
+--enable spaceAroundParens
+--enable spaceInsideBraces
+--enable spaceInsideBrackets
+--enable spaceInsideComments
+--enable spaceInsideGenerics
+--enable spaceInsideParens
+--enable strongOutlets
+--enable trailingClosures
+--enable trailingCommas
+--enable trailingSpace
+--enable typeSugar
+--enable void
+--enable wrap
+--enable wrapArguments
+--enable yodaConditions
+
+# Rules to disable
+--disable andOperator
+--disable blankLinesAroundMark
+--disable blankLinesAtEndOfScope
+--disable blankLinesAtStartOfScope
+--disable blankLinesBetweenScopes
+--disable consecutiveBlankLines
+--disable consecutiveSpaces
+--disable elseOnSameLine
+--disable emptyBraces
+--disable fileHeader
+--disable leadingDelimiters
+--disable linebreakAtEndOfFile
+--disable markTypes
+--disable organizeDeclarations
+--disable preferKeyPath
+--disable redundantClosure
+--disable redundantStaticSelf
+--disable sortDeclarations
+--disable strongifiedSelf
+--disable todos
+--disable unusedArguments
+--disable wrapMultilineStatementBraces
+
+# Custom options
+--self remove
+--importgrouping testable-bottom
+--patternlet inline
+--redundanttype inferred
+--closurevoid remove
+--emptybrackets no-space
+--hexliteralcase uppercase
+--exponentcase lowercase
+--fractiongrouping disabled
+--binarygrouping none
+--octalgrouping none
+--hexgrouping none
+--decimalgrouping none

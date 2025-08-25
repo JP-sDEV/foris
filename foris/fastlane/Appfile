@@ -1,0 +1,16 @@
+# Appfile for Foris iOS App
+
+# Your Apple ID
+apple_id("your-apple-id@example.com")
+
+# Your Team ID
+team_id("YOUR_TEAM_ID")
+
+# App Identifier
+app_identifier("com.yourcompany.foris")
+
+# iTunes Connect Team ID (if different from Team ID)
+itc_team_id("YOUR_ITC_TEAM_ID")
+
+# For more information about the Appfile, see:
+# https://docs.fastlane.tools/advanced/#appfile
