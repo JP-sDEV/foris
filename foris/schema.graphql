@@ -1,0 +1,272 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Auth {
+  user: User!
+}
+
+type AuthPayload {
+  refreshToken: String!
+  user: User!
+}
+
+type Challenge {
+  createdBy: String!
+  id: ID!
+  name: String!
+}
+
+"""Status of a challenge for a user"""
+enum ChallengeStatus {
+  COMPLETED
+  FAILED
+  IN_PROGRESS
+  NOT_IN_PROGRESS
+}
+
+type Comment {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  post: Post!
+  updatedAt: DateTime!
+  user: User!
+}
+
+input CreateAuthInput {
+  email: String!
+  idToken: String
+  name: String!
+  provider: String!
+  providerUserId: String!
+}
+
+input CreateChallengeInput {
+  """Optional description of the challenge"""
+  description: String
+
+  """Optional end date for the challenge"""
+  endDate: DateTime
+
+  """Name of the challenge"""
+  name: String!
+}
+
+input CreateCommentInput {
+  content: String!
+  postId: ID!
+}
+
+input CreateLeagueInput {
+  """Optional description of the league"""
+  description: String
+
+  """Name of the league"""
+  name: String!
+}
+
+input CreateLeaguechallengeInput {
+  """ID of the challenge"""
+  challengeId: String!
+
+  """ID of the league"""
+  leagueId: String!
+}
+
+input CreateLeagueuserInput {
+  leagueId: String!
+}
+
+input CreateLikeInput {
+  """ID of the post to like"""
+  postId: String!
+}
+
+input CreatePostInput {
+  authorId: String!
+  content: String
+  title: String!
+}
+
+input CreateUserInput {
+  email: String!
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input JoinUserChallengeInput {
+  challengeId: String!
+}
+
+type League {
+  createdBy: ID!
+  id: ID!
+  name: String!
+}
+
+type Leaguechallenge {
+  challenge: Challenge
+  challengeId: String!
+  league: League
+  leagueId: String!
+}
+
+type Leagueuser {
+  createdAt: DateTime!
+  id: ID!
+  league: League
+  leagueId: String!
+  updatedAt: DateTime!
+  user: User
+  userId: String!
+}
+
+type Like {
+  post: Post
+  postId: String!
+  user: User
+  userId: String!
+}
+
+type Mutation {
+  addLeaguechallenge(createLeaguechallengeInput: CreateLeaguechallengeInput!): Leaguechallenge!
+  createAuth(createAuthInput: CreateAuthInput!): AuthPayload!
+  createChallenge(createChallengeInput: CreateChallengeInput!): Challenge!
+  createComment(createCommentInput: CreateCommentInput!): Comment!
+  createLeague(createLeagueInput: CreateLeagueInput!): League!
+  createLeagueuser(createLeagueuserInput: CreateLeagueuserInput!): Leagueuser!
+  createLike(createLikeInput: CreateLikeInput!): Like!
+  createPost(createPostInput: CreatePostInput!): Post!
+  createUser(createUserInput: CreateUserInput!): User!
+  followUser(targetUserId: String!): Boolean!
+  joinUserChallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
+  refreshToken(refreshToken: String!): AuthPayload!
+  removeAuth(id: String!): Boolean!
+  removeChallenge(id: String!): Challenge!
+  removeComment(id: String!): Comment!
+  removeLeague(id: ID!): League!
+  removeLeaguechallenge(updateLeaguechallengeInput: UpdateLeaguechallengeInput!): Leaguechallenge!
+  removeLeagueuser(leagueId: String!, userId: String!): RemoveLeagueuserResponse!
+  removeLike(id: String!): Like!
+  removePost(id: String!): Post!
+  removeUser(id: String!): User!
+  removeUserChallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
+  unfollowUser(targetUserId: String!): Boolean!
+  updateChallenge(updateChallengeInput: UpdateChallengeInput!): Challenge!
+  updateComment(updateCommentInput: UpdateCommentInput!): Comment!
+  updateLeague(updateLeagueInput: UpdateLeagueInput!): League!
+  updatePost(updatePostInput: UpdatePostInput!): Post!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  updateUserChallenge(updateUserChallengeInput: UpdateUserChallengeInput!): Userchallenge!
+}
+
+type Post {
+  authorId: String!
+  content: String!
+  id: ID!
+  title: String!
+}
+
+type Query {
+  authByEmail(email: String!): User!
+  challenge(id: String!): Challenge!
+  challenges: [Challenge!]!
+  comment(id: String!): Comment!
+  findLeagueById(id: String!): League!
+  findOneById(id: String!): Challenge!
+  getFollowerCount(userId: String!): Int!
+  getFollowers(userId: String!): [User!]!
+  getFollowing(userId: String!): [User!]!
+  getFollowingCount(userId: String!): Int!
+  isFollowing(targetUserId: String!): Boolean!
+  league(id: String!): League!
+  leagueuser(leagueId: String!, userId: String!): Leagueuser!
+  leagueusers(createLeagueuserInput: CreateLeagueuserInput!): [Leagueuser!]!
+  like(id: String!): Like
+  me: User!
+  post(id: String!): Post!
+  user(id: String!): User!
+  userPosts(userId: String!): [Post!]!
+  userchallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
+}
+
+type RemoveLeagueuserResponse {
+  leagueId: ID!
+  message: String!
+  userId: ID!
+}
+
+input UpdateChallengeInput {
+  """Optional description of the challenge"""
+  description: String
+
+  """Optional end date for the challenge"""
+  endDate: DateTime
+
+  """UUID of the challenge to update"""
+  id: String!
+
+  """Name of the challenge"""
+  name: String
+}
+
+input UpdateCommentInput {
+  content: String
+  id: String!
+  postId: ID
+}
+
+input UpdateLeagueInput {
+  """Optional description of the league"""
+  description: String
+  id: String!
+
+  """Name of the league"""
+  name: String
+}
+
+input UpdateLeaguechallengeInput {
+  challengeId: String!
+  leagueId: String!
+}
+
+input UpdatePostInput {
+  authorId: String
+  content: String
+  id: String
+  title: String
+}
+
+input UpdateUserChallengeInput {
+  challengeId: String
+  completedAt: DateTime
+  status: ChallengeStatus
+}
+
+input UpdateUserInput {
+  avatarUrl: String
+  bio: String
+  email: String
+  id: String!
+  name: String
+}
+
+type User {
+  email: String!
+  id: ID!
+  name: String!
+  oauthAccounts: [Auth!]
+}
+
+type Userchallenge {
+  challengeId: String!
+  completedAt: DateTime
+  startedAt: DateTime!
+  status: ChallengeStatus!
+  userId: String!
+}

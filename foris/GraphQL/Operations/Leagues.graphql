@@ -1,0 +1,93 @@
+# League operations for Foris app
+
+# Get league by ID
+query GetLeague($id: String!) {
+  findLeagueById(id: $id) {
+    id
+    name
+    description
+    createdBy
+  }
+}
+
+# Create a new league
+mutation CreateLeague($input: CreateLeagueInput!) {
+  createLeague(createLeagueInput: $input) {
+    id
+    name
+    description
+    createdBy
+  }
+}
+
+# Update a league
+mutation UpdateLeague($input: UpdateLeagueInput!) {
+  updateLeague(updateLeagueInput: $input) {
+    id
+    name
+    description
+    createdBy
+  }
+}
+
+# Join a league
+mutation JoinLeague($input: CreateLeagueuserInput!) {
+  createLeagueuser(createLeagueuserInput: $input) {
+    id
+    leagueId
+    userId
+    createdAt
+    updatedAt
+  }
+}
+
+# Leave a league
+mutation LeaveLeague($leagueId: String!, $userId: String!) {
+  removeLeagueuser(leagueId: $leagueId, userId: $userId) {
+    leagueId
+    userId
+    message
+  }
+}
+
+# Get league users
+query GetLeagueUsers($input: CreateLeagueuserInput!) {
+  leagueusers(createLeagueuserInput: $input) {
+    id
+    leagueId
+    userId
+    createdAt
+    updatedAt
+    user {
+      id
+      name
+      email
+      avatarUrl
+    }
+  }
+}
+
+# Add challenge to league
+mutation AddLeagueChallenge($input: CreateLeaguechallengeInput!) {
+  addLeaguechallenge(createLeaguechallengeInput: $input) {
+    leagueId
+    challengeId
+    league {
+      id
+      name
+    }
+    challenge {
+      id
+      name
+      description
+    }
+  }
+}
+
+# Remove challenge from league
+mutation RemoveLeagueChallenge($input: UpdateLeaguechallengeInput!) {
+  removeLeaguechallenge(updateLeaguechallengeInput: $input) {
+    leagueId
+    challengeId
+  }
+}

@@ -1,0 +1,87 @@
+# Challenge operations for Foris app
+
+# Get all challenges
+query GetChallenges {
+  challenges {
+    id
+    name
+    description
+    createdBy
+    endDate
+  }
+}
+
+# Get single challenge
+query GetChallenge($id: String!) {
+  challenge(id: $id) {
+    id
+    name
+    description
+    createdBy
+    endDate
+  }
+}
+
+# Create a new challenge
+mutation CreateChallenge($input: CreateChallengeInput!) {
+  createChallenge(createChallengeInput: $input) {
+    id
+    name
+    description
+    createdBy
+    endDate
+  }
+}
+
+# Update a challenge
+mutation UpdateChallenge($input: UpdateChallengeInput!) {
+  updateChallenge(updateChallengeInput: $input) {
+    id
+    name
+    description
+    createdBy
+    endDate
+  }
+}
+
+# Join a challenge
+mutation JoinChallenge($input: JoinUserChallengeInput!) {
+  joinUserChallenge(joinUserChallengeInput: $input) {
+    userId
+    challengeId
+    status
+    startedAt
+    completedAt
+  }
+}
+
+# Leave a challenge
+mutation LeaveChallenge($input: JoinUserChallengeInput!) {
+  removeUserChallenge(joinUserChallengeInput: $input) {
+    userId
+    challengeId
+    status
+  }
+}
+
+# Update challenge status
+mutation UpdateChallengeStatus($input: UpdateUserChallengeInput!) {
+  updateUserChallenge(updateUserChallengeInput: $input) {
+    userId
+    challengeId
+    status
+    startedAt
+    completedAt
+  }
+}
+
+# Get user's challenge status
+query GetUserChallenge($input: JoinUserChallengeInput!) {
+  userchallenge(joinUserChallengeInput: $input) {
+    userId
+    challengeId
+    status
+    startedAt
+    completedAt
+  }
+}
