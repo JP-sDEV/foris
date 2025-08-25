@@ -70,7 +70,7 @@
       "json",
       "ts"
     ],
-    "testRegex": ".*\\.spec\\.ts$|.*\\.int-spec\\.ts$",
+    "testRegex": ".*\\.int-spec\\.ts$|.*\\.spec\\.ts$|.*\\.e2e-spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
