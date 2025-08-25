@@ -7,6 +7,7 @@ type Auth {
 }
 
 type AuthPayload {
+  accessToken: String!
   refreshToken: String!
   user: User!
 }
@@ -145,6 +146,8 @@ type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   followUser(targetUserId: String!): Boolean!
   joinUserChallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
+  login(email: String!): AuthPayload!
+  logout(refreshToken: String!): Boolean!
   refreshToken(refreshToken: String!): AuthPayload!
   removeAuth(id: String!): Boolean!
   removeChallenge(id: String!): Challenge!
