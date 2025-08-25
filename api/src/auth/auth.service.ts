@@ -67,7 +67,6 @@ export class AuthService {
 
   async findOneByEmail(email: string) {
     const user = await this.userService.findOneByEmail(email);
-    console.log('AuthService.findOneByEmail called');
 
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
@@ -103,5 +102,42 @@ export class AuthService {
       user: session.user,
       refreshToken: newSession.refreshToken,
     };
+  }
+
+  async login(email: string) {
+    const user = await this.userService.findOneByEmail(email);
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    // console.log('Login User Auth Service: ', user);
+
+    // verify password if using local auth
+    // const valid = await bcrypt.compare(input.password, user.passwordHash);
+
+    const payload = { sub: user.id, name: user.name };
+    const accessToken = this.jwtService.sign(payload);
+
+    const refreshToken = this.sessionService.generateSecureToken();
+    await this.sessionService.create({
+      refreshToken,
+      userId: user.id,
+      email: user.email,
+      userAgent: null,
+      ipAddress: null,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 90),
+    });
+
+    return { user, accessToken, refreshToken };
+  }
+
+  async logout(refreshToken: string): Promise<boolean> {
+    const session = await this.sessionService.findUnique(refreshToken);
+
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    await this.sessionService.removeByRefeshToken(refreshToken);
+    return true;
   }
 }

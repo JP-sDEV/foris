@@ -29,4 +29,14 @@ export class AuthResolver {
   removeAuth(@Args('id', { type: () => String }) id: string) {
     return this.authService.remove(id);
   }
+
+  @Mutation(() => AuthPayload, { name: 'login' })
+  login(@Args('email') email: string) {
+    return this.authService.login(email);
+  }
+
+  @Mutation(() => Boolean, { name: 'logout' })
+  async logout(@Args('refreshToken') refreshToken: string) {
+    return this.authService.logout(refreshToken);
+  }
 }

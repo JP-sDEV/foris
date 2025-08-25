@@ -8,4 +8,7 @@ export class AuthPayload {
 
   @Field()
   refreshToken: string;
+
+  @Field(() => String)
+  accessToken: string;
 }
