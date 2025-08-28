@@ -5,6 +5,8 @@ import { AuthResolver } from './auth.resolver';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserModule } from '../user/user.module';
 import { SessionModule } from '../session/session.module';
+import { AccessTokenStrategy } from './strategy/access-token.strategy';
+import { RefreshTokenStrategy } from './strategy/refresh-token.strategy';
 
 @Module({
   imports: [
@@ -16,7 +18,13 @@ import { SessionModule } from '../session/session.module';
       global: true,
     }),
   ],
-  providers: [AuthResolver, AuthService, PrismaService],
+  providers: [
+    AuthResolver,
+    AuthService,
+    PrismaService,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+  ],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

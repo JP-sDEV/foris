@@ -4,6 +4,11 @@ import { Auth } from './entities/auth.entity';
 import { User } from '../user/entities/user.entity';
 import { CreateAuthInput } from './dto/create-auth.input';
 import { AuthPayload } from './entities/authPayload.entity';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from './guards/auth.guard';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from './types/jwt-payload.type';
 
 @Resolver(() => Auth)
 export class AuthResolver {
@@ -20,14 +25,19 @@ export class AuthResolver {
   }
 
   // refresh token
-  @Mutation(() => AuthPayload, { name: 'refreshToken' })
-  refreshToken(@Args('refreshToken') refreshToken: string) {
-    return this.authService.refreshToken(refreshToken);
+  @Mutation(() => AuthPayload, { name: 'payload' })
+  @UseGuards(RefreshTokenGuard)
+  refreshToken(
+    @CurrentUser('payload') payload: JwtPayload,
+    refreshToken: string,
+  ) {
+    return this.authService.refreshToken(payload.userId, refreshToken);
   }
 
   @Mutation(() => Boolean, { name: 'removeAuth' })
-  removeAuth(@Args('id', { type: () => String }) id: string) {
-    return this.authService.remove(id);
+  @UseGuards(GqlAuthGuard)
+  removeAuth(@CurrentUser() payload: JwtPayload) {
+    return this.authService.remove(payload.userId);
   }
 
   @Mutation(() => AuthPayload, { name: 'login' })
@@ -36,7 +46,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => Boolean, { name: 'logout' })
-  async logout(@Args('refreshToken') refreshToken: string) {
+  @UseGuards(GqlAuthGuard)
+  async logout(refreshToken: string) {
     return this.authService.logout(refreshToken);
   }
 }

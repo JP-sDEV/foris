@@ -1,14 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserfollowResolver } from './userfollow.resolver';
 import { UserfollowService } from './userfollow.service';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { ExecutionContext } from '@nestjs/common';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 describe('UserfollowResolver', () => {
   let resolver: UserfollowResolver;
   let service: UserfollowService;
 
-  const mockUser = { id: 'user-1', name: 'Test User', email: 'test@email.com' };
+  const mockUser: JwtPayload = {
+    userId: 'user-123',
+    email: 'test@example.com',
+    name: 'Test User',
+  };
   const targetUserId = 'user-2';
 
   const mockService = {
@@ -49,7 +54,10 @@ describe('UserfollowResolver', () => {
     await expect(resolver.followUser(targetUserId, mockUser)).resolves.toBe(
       true,
     );
-    expect(service.followUser).toHaveBeenCalledWith(mockUser.id, targetUserId);
+    expect(service.followUser).toHaveBeenCalledWith(
+      mockUser.userId,
+      targetUserId,
+    );
   });
 
   it('should unfollow a user', async () => {
@@ -57,39 +65,42 @@ describe('UserfollowResolver', () => {
       true,
     );
     expect(service.unfollowUser).toHaveBeenCalledWith(
-      mockUser.id,
+      mockUser.userId,
       targetUserId,
     );
   });
 
   it('should return followers list', async () => {
-    await expect(resolver.getFollowers(mockUser.id)).resolves.toEqual([
+    await expect(resolver.getFollowers(mockUser.userId)).resolves.toEqual([
       { id: 'user-2' },
     ]);
-    expect(service.getFollowers).toHaveBeenCalledWith(mockUser.id);
+    expect(service.getFollowers).toHaveBeenCalledWith(mockUser.userId);
   });
 
   it('should return following list', async () => {
-    await expect(resolver.getFollowing(mockUser.id)).resolves.toEqual([
+    await expect(resolver.getFollowing(mockUser.userId)).resolves.toEqual([
       { id: 'user-3' },
     ]);
-    expect(service.getFollowing).toHaveBeenCalledWith(mockUser.id);
+    expect(service.getFollowing).toHaveBeenCalledWith(mockUser.userId);
   });
 
   it('should return follower count', async () => {
-    await expect(resolver.getFollowerCount(mockUser.id)).resolves.toBe(5);
-    expect(service.getFollowerCount).toHaveBeenCalledWith(mockUser.id);
+    await expect(resolver.getFollowerCount(mockUser.userId)).resolves.toBe(5);
+    expect(service.getFollowerCount).toHaveBeenCalledWith(mockUser.userId);
   });
 
   it('should return following count', async () => {
-    await expect(resolver.getFollowingCount(mockUser.id)).resolves.toBe(7);
-    expect(service.getFollowingCount).toHaveBeenCalledWith(mockUser.id);
+    await expect(resolver.getFollowingCount(mockUser.userId)).resolves.toBe(7);
+    expect(service.getFollowingCount).toHaveBeenCalledWith(mockUser.userId);
   });
 
   it('should return true for isFollowing', async () => {
     await expect(resolver.isFollowing(targetUserId, mockUser)).resolves.toBe(
       true,
     );
-    expect(service.isFollowing).toHaveBeenCalledWith(mockUser.id, targetUserId);
+    expect(service.isFollowing).toHaveBeenCalledWith(
+      mockUser.userId,
+      targetUserId,
+    );
   });
 });

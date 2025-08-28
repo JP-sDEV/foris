@@ -3,9 +3,10 @@ import { LeagueuserService } from './leagueuser.service';
 import { Leagueuser } from './entities/leagueuser.entity';
 import { CreateLeagueuserInput } from './dto/create-leagueuser.input';
 import { RemoveLeagueuserResponse } from './entities/remove-leagueuser.response';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @Resolver(() => Leagueuser)
 export class LeagueuserResolver {
@@ -16,10 +17,13 @@ export class LeagueuserResolver {
   @UseGuards(GqlAuthGuard)
   createLeagueuser(
     @Args('createLeagueuserInput') createLeagueuserInput: CreateLeagueuserInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return this.leagueuserService.create(createLeagueuserInput, user.sub);
+      return this.leagueuserService.create(
+        createLeagueuserInput,
+        payload.userId,
+      );
     } catch (error) {
       console.error('Error joining league:', error);
       throw new Error('Failed to join league user');
@@ -30,10 +34,13 @@ export class LeagueuserResolver {
   @UseGuards(GqlAuthGuard)
   findAll(
     @Args('createLeagueuserInput') createLeagueuserInput: CreateLeagueuserInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return this.leagueuserService.findAll(createLeagueuserInput, user.sub);
+      return this.leagueuserService.findAll(
+        createLeagueuserInput,
+        payload.userId,
+      );
     } catch (error) {
       console.error('Error finding users in league:', error);
       throw new Error('Failed to find users in league');
@@ -58,10 +65,10 @@ export class LeagueuserResolver {
   removeLeagueuser(
     @Args('leagueId', { type: () => String }) leagueId: string,
     @Args('userId', { type: () => String }) userId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return this.leagueuserService.remove(leagueId, user.sub, userId);
+      return this.leagueuserService.remove(leagueId, payload.userId, userId);
     } catch (error) {
       console.error('Error removing user from league:', error);
       throw new Error('Failed to remove user from league');

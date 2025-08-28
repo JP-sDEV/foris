@@ -89,17 +89,22 @@ export class AuthService {
     return true;
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(userId: string, refreshToken: string) {
+    const user = await this.userService.findOneById(userId);
     const session = await this.sessionService.findUnique(refreshToken);
 
     if (!session) {
       throw new NotFoundException('Session not found');
     }
 
+    if (session.userId !== user.id) {
+      throw new NotFoundException('Session not found for this user');
+    }
+
     const newSession = await this.sessionService.update(refreshToken);
 
     return {
-      user: session.user,
+      user: newSession.user,
       refreshToken: newSession.refreshToken,
     };
   }

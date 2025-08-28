@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommentResolver } from './comment.resolver';
 import { CommentService } from './comment.service';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { InternalServerErrorException } from '@nestjs/common';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 const mockCommentService = {
   create: jest.fn(),
@@ -11,7 +12,11 @@ const mockCommentService = {
   remove: jest.fn(),
 };
 
-const mockUser = { sub: 'user123' };
+const mockPayload: JwtPayload = {
+  userId: 'user123',
+  email: 'test@email.com',
+  name: 'Test User',
+};
 
 describe('CommentResolver', () => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -41,15 +46,16 @@ describe('CommentResolver', () => {
   });
 
   describe('createComment', () => {
-    it('should call commentService.create with user.sub and input', async () => {
+    it('should call commentService.create with payload.userId and input', async () => {
       const input = { content: 'test comment', postId: 'post1' };
       const expected = { id: 'c1', ...input };
       mockCommentService.create.mockResolvedValue(expected);
 
-      const result = await resolver.createComment(input, mockUser);
+      const result = await resolver.createComment(input, mockPayload);
+
       expect(result).toEqual(expected);
       expect(mockCommentService.create).toHaveBeenCalledWith(
-        mockUser.sub,
+        mockPayload.userId,
         input,
       );
     });
@@ -58,7 +64,7 @@ describe('CommentResolver', () => {
       const input = { content: 'test comment', postId: 'post1' };
       mockCommentService.create.mockRejectedValue(new Error('DB error'));
 
-      await expect(resolver.createComment(input, mockUser)).rejects.toThrow(
+      await expect(resolver.createComment(input, mockPayload)).rejects.toThrow(
         InternalServerErrorException,
       );
     });
@@ -71,6 +77,7 @@ describe('CommentResolver', () => {
       mockCommentService.findOne.mockResolvedValue(expected);
 
       const result = await resolver.findOne(commentId);
+
       expect(result).toEqual(expected);
       expect(mockCommentService.findOne).toHaveBeenCalledWith(commentId);
     });
@@ -85,15 +92,16 @@ describe('CommentResolver', () => {
   });
 
   describe('updateComment', () => {
-    it('should call commentService.update with user.sub and input', async () => {
+    it('should call commentService.update with payload.userId and input', async () => {
       const input = { id: 'c1', content: 'updated text' };
-      const expected = { id: 'c1', content: 'updated text' };
+      const expected = { ...input };
       mockCommentService.update.mockResolvedValue(expected);
 
-      const result = await resolver.updateComment(input, mockUser);
+      const result = await resolver.updateComment(input, mockPayload);
+
       expect(result).toEqual(expected);
       expect(mockCommentService.update).toHaveBeenCalledWith(
-        mockUser.sub,
+        mockPayload.userId,
         input,
       );
     });
@@ -102,22 +110,23 @@ describe('CommentResolver', () => {
       const input = { id: 'c1', content: 'updated text' };
       mockCommentService.update.mockRejectedValue(new Error('DB error'));
 
-      await expect(resolver.updateComment(input, mockUser)).rejects.toThrow(
+      await expect(resolver.updateComment(input, mockPayload)).rejects.toThrow(
         InternalServerErrorException,
       );
     });
   });
 
   describe('removeComment', () => {
-    it('should call commentService.remove with user.sub and id', async () => {
+    it('should call commentService.remove with payload.userId and id', async () => {
       const commentId = 'c1';
       const expected = { id: commentId };
       mockCommentService.remove.mockResolvedValue(expected);
 
-      const result = await resolver.removeComment(commentId, mockUser);
+      const result = await resolver.removeComment(commentId, mockPayload);
+
       expect(result).toEqual(expected);
       expect(mockCommentService.remove).toHaveBeenCalledWith(
-        mockUser.sub,
+        mockPayload.userId,
         commentId,
       );
     });
@@ -125,7 +134,7 @@ describe('CommentResolver', () => {
     it('should throw InternalServerErrorException on service error', async () => {
       mockCommentService.remove.mockRejectedValue(new Error('DB error'));
 
-      await expect(resolver.removeComment('c1', mockUser)).rejects.toThrow(
+      await expect(resolver.removeComment('c1', mockPayload)).rejects.toThrow(
         InternalServerErrorException,
       );
     });

@@ -3,14 +3,18 @@ import { LeaguechallengeResolver } from './leaguechallenge.resolver';
 import { LeaguechallengeService } from './leaguechallenge.service';
 import { CreateLeaguechallengeInput } from './dto/create-leaguechallenge.input';
 import { UpdateLeaguechallengeInput } from './dto/update-leaguechallenge.input';
-import { InternalServerErrorException, ExecutionContext } from '@nestjs/common';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { ExecutionContext } from '@nestjs/common';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 
 describe('LeaguechallengeResolver', () => {
   let resolver: LeaguechallengeResolver;
   let service: jest.Mocked<LeaguechallengeService>;
 
-  const mockUser = { sub: 'user-1' };
+  const mockUser = {
+    userId: 'user-1',
+    email: 'test@email.com',
+    name: 'Test User',
+  }; // match JwtPayload
   const mockResult = {
     leagueId: 'league-1',
     challengeId: 'challenge-1',
@@ -35,7 +39,7 @@ describe('LeaguechallengeResolver', () => {
       .useValue({
         canActivate: (context: ExecutionContext) => {
           const ctx = context.getArgByIndex(2); // GraphQL context
-          ctx.req = { user: mockUser }; // Inject mock user
+          ctx.req = { user: mockUser }; // inject mock user
           return true;
         },
       })
@@ -58,14 +62,13 @@ describe('LeaguechallengeResolver', () => {
       };
 
       const result = await resolver.addLeaguechallenge(input, mockUser);
-      expect(service.create).toHaveBeenCalledWith(input, mockUser.sub);
+
+      expect(service.create).toHaveBeenCalledWith(input, mockUser.userId);
       expect(result).toEqual(mockResult);
     });
 
-    it('should throw error on service failure', async () => {
-      service.create.mockRejectedValue(
-        new InternalServerErrorException('DB error'),
-      );
+    it('should bubble up errors from the service', async () => {
+      service.create.mockRejectedValue(new Error('DB error'));
 
       const input: CreateLeaguechallengeInput = {
         leagueId: 'league-1',
@@ -74,7 +77,7 @@ describe('LeaguechallengeResolver', () => {
 
       await expect(
         resolver.addLeaguechallenge(input, mockUser),
-      ).rejects.toThrow(InternalServerErrorException);
+      ).rejects.toThrow('DB error');
     });
   });
 
@@ -88,14 +91,13 @@ describe('LeaguechallengeResolver', () => {
       };
 
       const result = await resolver.removeLeaguechallenge(input, mockUser);
-      expect(service.remove).toHaveBeenCalledWith(input, mockUser.sub);
+
+      expect(service.remove).toHaveBeenCalledWith(input, mockUser.userId);
       expect(result).toEqual(mockResult);
     });
 
-    it('should throw error on service failure', async () => {
-      service.remove.mockRejectedValue(
-        new InternalServerErrorException('DB error'),
-      );
+    it('should bubble up errors from the service', async () => {
+      service.remove.mockRejectedValue(new Error('DB error'));
 
       const input: UpdateLeaguechallengeInput = {
         leagueId: 'league-1',
@@ -104,7 +106,7 @@ describe('LeaguechallengeResolver', () => {
 
       await expect(
         resolver.removeLeaguechallenge(input, mockUser),
-      ).rejects.toThrow(InternalServerErrorException);
+      ).rejects.toThrow('DB error');
     });
   });
 });

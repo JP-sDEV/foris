@@ -10,7 +10,4 @@ export class CreatePostInput {
 
   @Field({ nullable: true })
   content?: string;
-
-  @Field(() => String)
-  authorId: string;
 }

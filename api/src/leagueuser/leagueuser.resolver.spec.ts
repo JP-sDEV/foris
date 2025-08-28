@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LeagueuserResolver } from './leagueuser.resolver';
 import { LeagueuserService } from './leagueuser.service';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { ExecutionContext } from '@nestjs/common';
 import { CreateLeagueuserInput } from './dto/create-leagueuser.input';
 import { LeagueRole } from '@prisma/client';
@@ -12,7 +12,11 @@ describe('LeagueuserResolver', () => {
   let resolver: LeagueuserResolver;
   let leagueuserService: jest.Mocked<LeagueuserService>;
 
-  const mockUser = { sub: 'user-1' };
+  const mockUser = {
+    userId: 'user-1',
+    email: 'test@email.com',
+    name: 'Test User',
+  };
   const mockLeagueUser = {
     leagueId: 'league-1',
     userId: 'user-1',
@@ -60,7 +64,7 @@ describe('LeagueuserResolver', () => {
 
       expect(leagueuserService.create).toHaveBeenCalledWith(
         input,
-        mockUser.sub,
+        mockUser.userId,
       );
       expect(result).toEqual(mockLeagueUser);
     });
@@ -102,7 +106,7 @@ describe('LeagueuserResolver', () => {
 
       expect(leagueuserService.findAll).toHaveBeenCalledWith(
         input,
-        mockUser.sub,
+        mockUser.userId,
       );
       expect(result).toEqual(mockResult);
     });
@@ -139,22 +143,22 @@ describe('LeagueuserResolver', () => {
   describe('removeLeagueuser', () => {
     it('should call service.remove and return result', async () => {
       const mockResponse = {
-        message: `League user with userId=${mockUser.sub} removed from leagueId=league-1`,
+        message: `League user with userId=${mockUser.userId} removed from leagueId=league-1`,
         leagueId: 'league-1',
-        userId: mockUser.sub,
+        userId: mockUser.userId,
       };
       leagueuserService.remove.mockResolvedValue(mockResponse);
 
       const result = await resolver.removeLeagueuser(
         'league-1',
-        mockUser.sub,
+        mockUser.userId,
         mockUser,
       );
 
       expect(leagueuserService.remove).toHaveBeenCalledWith(
         'league-1',
-        mockUser.sub,
-        mockUser.sub,
+        mockUser.userId,
+        mockUser.userId,
       );
       expect(result).toEqual(mockResponse);
     });
