@@ -13,7 +13,7 @@ import { RefreshTokenStrategy } from './strategy/refresh-token.strategy';
     forwardRef(() => UserModule),
     forwardRef(() => SessionModule),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'defaultSecretKey',
+      secret: process.env.JWT_SECRET || 'local-jwt-test-secret',
       signOptions: { expiresIn: '1h' },
       global: true,
     }),

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
+import { JwtPayload } from '../types/jwt-payload.type';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -17,7 +18,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req: Request, payload: any) {
+  async validate(req: Request, payload: JwtPayload) {
     // Optionally also validate that the refreshToken still exists in DB
     const refreshToken = req
       ?.get('authorization')

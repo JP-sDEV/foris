@@ -29,7 +29,7 @@ export class AuthResolver {
   @UseGuards(RefreshTokenGuard)
   refreshToken(
     @CurrentUser('payload') payload: JwtPayload,
-    refreshToken: string,
+    @Args('refreshToken', { type: () => String }) refreshToken: string,
   ) {
     return this.authService.refreshToken(payload.userId, refreshToken);
   }
@@ -47,7 +47,7 @@ export class AuthResolver {
 
   @Mutation(() => Boolean, { name: 'logout' })
   @UseGuards(GqlAuthGuard)
-  async logout(refreshToken: string) {
-    return this.authService.logout(refreshToken);
+  async logout(@CurrentUser() payload: JwtPayload) {
+    return this.authService.logoutByUserId(payload.userId);
   }
 }

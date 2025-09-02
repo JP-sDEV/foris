@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from '../types/jwt-payload.type';
 
 @Injectable()
 export class GqlAuthGuard implements CanActivate {
@@ -15,14 +16,18 @@ export class GqlAuthGuard implements CanActivate {
     const ctx = GqlExecutionContext.create(context);
     const req = ctx.getContext().req;
 
+    // console.log('REQ HEADERS:', ctx.getContext().req.headers);
+
     const authHeader = req.headers.authorization;
     if (!authHeader) throw new UnauthorizedException('No authorization header');
 
-    const token = authHeader.replace('Bearer ', '');
+    const token = authHeader.split(' ')[1]?.trim();
+    if (!token) throw new UnauthorizedException('No token provided');
 
     try {
-      const decoded = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET || 'defaultSecretKey',
+      const decoded = await this.jwtService.verifyAsync<JwtPayload>(token, {
+        secret: process.env.JWT_SECRET,
+        // ignoreExpiration: true,
       });
 
       req.user = decoded; // store user in request
