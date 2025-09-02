@@ -16,8 +16,6 @@ export class GqlAuthGuard implements CanActivate {
     const ctx = GqlExecutionContext.create(context);
     const req = ctx.getContext().req;
 
-    // console.log('REQ HEADERS:', ctx.getContext().req.headers);
-
     const authHeader = req.headers.authorization;
     if (!authHeader) throw new UnauthorizedException('No authorization header');
 

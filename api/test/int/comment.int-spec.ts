@@ -50,8 +50,6 @@ describe('CommentModule (integration)', () => {
       { secret: process.env.JWT_SECRET },
     );
 
-    // console.log('User ID:', userId);
-
     const post = await prisma.post.create({
       data: {
         title: 'Test Post',

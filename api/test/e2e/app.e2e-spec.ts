@@ -114,8 +114,6 @@ describe('E2E Tests (GraphQL)', () => {
     expect(res.body.data.login.accessToken).toBeDefined();
     expect(res.body.data.login.user.email).toBe(EMAIL);
 
-    // console.log(res.body);
-
     // save token for future authenticated requests
     token = res.body.data.login.accessToken;
     refreshToken = res.body.data.login.refreshToken;

@@ -118,7 +118,6 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
-    // console.log('Login User Auth Service: ', user);
 
     // verify password if using local auth
     // const valid = await bcrypt.compare(input.password, user.passwordHash);
