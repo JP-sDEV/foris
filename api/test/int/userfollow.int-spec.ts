@@ -6,6 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 import * as request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.dev.local') });
+
 describe('UserfollowModule (integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -51,7 +56,7 @@ describe('UserfollowModule (integration)', () => {
 
     // Generate JWT for userA
     tokenA = jwtService.sign(
-      { sub: userAId },
+      { userId: userAId, name: userA.name, email: userA.email },
       { secret: process.env.JWT_SECRET },
     );
   });

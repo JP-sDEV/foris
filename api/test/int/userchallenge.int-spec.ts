@@ -7,6 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { ChallengeStatus } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.dev.local') });
+
 describe('UserchallengeModule (integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -32,11 +37,21 @@ describe('UserchallengeModule (integration)', () => {
     await prisma.challenge.deleteMany();
     await prisma.user.deleteMany();
 
-    // Create user and challenge
+    // Create user
     const user = await prisma.user.create({
-      data: { id: uuidv4(), email: 'test@example.com', name: 'Test User' },
+      data: {
+        id: uuidv4(),
+        email: 'challenge-test@example.com',
+        name: 'Challenge Tester',
+      },
     });
     userId = user.id;
+
+    // Create JWT
+    token = jwtService.sign(
+      { userId: userId, name: user.name, email: user.email },
+      { secret: process.env.JWT_SECRET },
+    );
 
     const challenge = await prisma.challenge.create({
       data: {
@@ -46,11 +61,6 @@ describe('UserchallengeModule (integration)', () => {
       },
     });
     challengeId = challenge.id;
-
-    token = jwtService.sign(
-      { sub: userId },
-      { secret: process.env.JWT_SECRET },
-    );
   });
 
   afterAll(async () => {

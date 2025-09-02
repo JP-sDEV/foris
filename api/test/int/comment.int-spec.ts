@@ -4,6 +4,12 @@ import * as request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { v4 as uuidv4 } from 'uuid';
+
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.dev.local') });
 
 describe('CommentModule (integration)', () => {
   let app: INestApplication;
@@ -28,11 +34,21 @@ describe('CommentModule (integration)', () => {
     prisma = app.get(PrismaService);
     jwtService = app.get(JwtService);
 
-    // Seed user and post
+    // Create user
     const user = await prisma.user.create({
-      data: { email: 'test@example.com', name: 'Test User' },
+      data: {
+        id: uuidv4(),
+        email: 'comment-test@example.com',
+        name: 'Comment Tester',
+      },
     });
     userId = user.id;
+
+    // Create JWT
+    token = jwtService.sign(
+      { userId: userId, name: user.name, email: user.email },
+      { secret: process.env.JWT_SECRET },
+    );
 
     // console.log('User ID:', userId);
 
@@ -45,7 +61,11 @@ describe('CommentModule (integration)', () => {
     });
     postId = post.id;
 
-    token = jwtService.sign({ sub: userId });
+    // Create JWT
+    token = jwtService.sign(
+      { userId: userId, name: user.name, email: user.email },
+      { secret: process.env.JWT_SECRET },
+    );
   });
 
   it('creates a comment', async () => {
