@@ -3,9 +3,10 @@ import { UserchallengeService } from './userchallenge.service';
 import { Userchallenge } from './entities/userchallenge.entity';
 import { JoinUserChallengeInput } from './dto/join-userchallenge.input';
 import { UpdateUserChallengeInput } from './dto/update-userchallenge.input';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @Resolver(() => Userchallenge)
 export class UserchallengeResolver {
@@ -16,12 +17,12 @@ export class UserchallengeResolver {
   async joinUserChallenge(
     @Args('joinUserChallengeInput')
     joinUserChallengeInput: JoinUserChallengeInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
       return await this.userchallengeService.create(
         joinUserChallengeInput,
-        user.sub,
+        payload.userId,
       );
     } catch (error) {
       console.error('Error joining user challenge:', error);
@@ -40,12 +41,12 @@ export class UserchallengeResolver {
   async updateUserChallenge(
     @Args('updateUserChallengeInput')
     updateUserChallengeInput: UpdateUserChallengeInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
       return await this.userchallengeService.update(
         updateUserChallengeInput,
-        user.sub,
+        payload.userId,
       );
     } catch (error) {
       console.error('Error updating user challenge:', error);
@@ -58,11 +59,11 @@ export class UserchallengeResolver {
   async findOne(
     @Args('joinUserChallengeInput')
     joinUserChallengeInput: JoinUserChallengeInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
       return await this.userchallengeService.findOne(
-        user.sub,
+        payload.userId,
         joinUserChallengeInput.challengeId,
       );
     } catch (error) {
@@ -76,12 +77,12 @@ export class UserchallengeResolver {
   async removeUserChallenge(
     @Args('joinUserChallengeInput')
     joinUserChallengeInput: JoinUserChallengeInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
       return await this.userchallengeService.remove(
         joinUserChallengeInput,
-        user.sub,
+        payload.userId,
       );
     } catch (error) {
       console.error('Error removing user challenge:', error);

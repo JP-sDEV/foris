@@ -5,7 +5,8 @@ import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UseGuards, InternalServerErrorException } from '@nestjs/common';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @Resolver(() => Comment)
 export class CommentResolver {
@@ -15,10 +16,13 @@ export class CommentResolver {
   @UseGuards(GqlAuthGuard)
   async createComment(
     @Args('createCommentInput') createCommentInput: CreateCommentInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return await this.commentService.create(user.sub, createCommentInput);
+      return await this.commentService.create(
+        payload.userId,
+        createCommentInput,
+      );
     } catch (error) {
       console.error('Error creating comment:', error);
       throw new InternalServerErrorException('Failed to create comment');
@@ -40,10 +44,13 @@ export class CommentResolver {
   @UseGuards(GqlAuthGuard)
   async updateComment(
     @Args('updateCommentInput') updateCommentInput: UpdateCommentInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return await this.commentService.update(user.sub, updateCommentInput);
+      return await this.commentService.update(
+        payload.userId,
+        updateCommentInput,
+      );
     } catch (error) {
       console.error('Error updating comment:', error);
       throw new InternalServerErrorException('Failed to update comment');
@@ -54,10 +61,10 @@ export class CommentResolver {
   @UseGuards(GqlAuthGuard)
   async removeComment(
     @Args('id', { type: () => String }) id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return await this.commentService.remove(user.sub, id);
+      return await this.commentService.remove(payload.userId, id);
     } catch (error) {
       console.error('Error removing comment:', error);
       throw new InternalServerErrorException('Failed to remove comment');

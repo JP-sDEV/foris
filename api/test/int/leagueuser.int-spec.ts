@@ -6,6 +6,11 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
 import { JwtService } from '@nestjs/jwt';
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.dev.local') });
+
 describe('LeagueuserModule (integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -52,8 +57,9 @@ describe('LeagueuserModule (integration)', () => {
     });
     leagueId = league.id;
 
+    // Create JWT
     token = jwtService.sign(
-      { sub: userId },
+      { userId: userId, name: user.name, email: user.email },
       { secret: process.env.JWT_SECRET },
     );
   });

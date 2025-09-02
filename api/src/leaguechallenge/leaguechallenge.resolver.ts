@@ -3,9 +3,10 @@ import { LeaguechallengeService } from './leaguechallenge.service';
 import { Leaguechallenge } from './entities/leaguechallenge.entity';
 import { CreateLeaguechallengeInput } from './dto/create-leaguechallenge.input';
 import { UpdateLeaguechallengeInput } from './dto/update-leaguechallenge.input';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @Resolver(() => Leaguechallenge)
 export class LeaguechallengeResolver {
@@ -19,12 +20,12 @@ export class LeaguechallengeResolver {
   addLeaguechallenge(
     @Args('createLeaguechallengeInput')
     createLeaguechallengeInput: CreateLeaguechallengeInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
       return this.leaguechallengeService.create(
         createLeaguechallengeInput,
-        user.sub,
+        payload.userId,
       );
     } catch (error) {
       console.error('Error adding challenge to league:', error);
@@ -37,12 +38,12 @@ export class LeaguechallengeResolver {
   removeLeaguechallenge(
     @Args('updateLeaguechallengeInput')
     createLeaguechallengeInput: UpdateLeaguechallengeInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
       return this.leaguechallengeService.remove(
         createLeaguechallengeInput,
-        user.sub,
+        payload.userId,
       );
     } catch (error) {
       console.error('Error removing challenge from league:', error);

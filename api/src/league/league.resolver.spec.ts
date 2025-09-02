@@ -5,8 +5,8 @@ import { CreateLeagueInput } from './dto/create-league.input';
 import { UpdateLeagueInput } from './dto/update-league.input';
 import { InternalServerErrorException } from '@nestjs/common';
 import { ExecutionContext } from '@nestjs/common';
-
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 describe('LeagueResolver', () => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -14,7 +14,12 @@ describe('LeagueResolver', () => {
   let resolver: LeagueResolver;
   let leagueService: jest.Mocked<LeagueService>;
 
-  const mockUser = { sub: 'user-1' };
+  const mockPayload: JwtPayload = {
+    userId: 'user-1',
+    email: 'test@email.com',
+    name: 'Test User',
+  };
+
   const mockLeague = {
     id: 'league-1',
     name: 'Test League',
@@ -41,7 +46,7 @@ describe('LeagueResolver', () => {
       .useValue({
         canActivate: (context: ExecutionContext) => {
           const ctx = context.getArgByIndex(2); // GraphQL context
-          ctx.req = { user: mockUser }; // Inject mock user
+          ctx.req = { user: mockPayload }; // Inject mock payload
           return true;
         },
       })
@@ -57,18 +62,20 @@ describe('LeagueResolver', () => {
       const input: CreateLeagueInput = { name: 'Test League' };
       leagueService.create.mockResolvedValue(mockLeague);
 
-      const result = await resolver.createLeague(input, mockUser);
-      expect(leagueService.create).toHaveBeenCalledWith(input, mockUser.sub); // adjust if order is different
+      const result = await resolver.createLeague(input, mockPayload);
+
+      expect(leagueService.create).toHaveBeenCalledWith(
+        input,
+        mockPayload.userId,
+      );
       expect(result).toEqual(mockLeague);
     });
 
     it('should throw InternalServerErrorException on service failure', async () => {
       const input: CreateLeagueInput = { name: 'Test League' };
-      leagueService.create.mockRejectedValue(
-        new InternalServerErrorException('DB error'),
-      );
+      leagueService.create.mockRejectedValue(new Error('DB error'));
 
-      await expect(resolver.createLeague(input, mockUser)).rejects.toThrow(
+      await expect(resolver.createLeague(input, mockPayload)).rejects.toThrow(
         InternalServerErrorException,
       );
     });
@@ -76,25 +83,42 @@ describe('LeagueResolver', () => {
 
   describe('findOneByIdUser', () => {
     it('should call leagueService.findOneByIdUser and return the result', async () => {
-      leagueService.findOneByIdUser.mockResolvedValue(mockLeague); // <- correct method
+      leagueService.findOneByIdUser.mockResolvedValue(mockLeague);
 
-      const result = await resolver.findOneByIdUser('league-1', mockUser);
+      const result = await resolver.findOneByIdUser('league-1', mockPayload);
 
       expect(leagueService.findOneByIdUser).toHaveBeenCalledWith(
         'league-1',
-        mockUser.sub,
+        mockPayload.userId,
       );
       expect(result).toEqual(mockLeague);
     });
 
     it('should throw InternalServerErrorException on service failure', async () => {
-      leagueService.findOneByIdUser.mockRejectedValue(
-        new InternalServerErrorException('DB error'),
-      );
+      leagueService.findOneByIdUser.mockRejectedValue(new Error('DB error'));
 
       await expect(
-        resolver.findOneByIdUser('league-1', mockUser),
+        resolver.findOneByIdUser('league-1', mockPayload),
       ).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+
+  describe('findLeagueById', () => {
+    it('should call leagueService.findOneById and return the result', async () => {
+      leagueService.findOneById.mockResolvedValue(mockLeague);
+
+      const result = await resolver.findLeagueById('league-1');
+
+      expect(leagueService.findOneById).toHaveBeenCalledWith('league-1');
+      expect(result).toEqual(mockLeague);
+    });
+
+    it('should throw InternalServerErrorException on service failure', async () => {
+      leagueService.findOneById.mockRejectedValue(new Error('DB error'));
+
+      await expect(resolver.findLeagueById('league-1')).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
@@ -104,14 +128,16 @@ describe('LeagueResolver', () => {
         id: 'league-1',
         name: 'Updated League',
       };
-      leagueService.update.mockResolvedValue({
-        ...mockLeague,
-        name: 'Updated League',
-      });
+      const updated = { ...mockLeague, name: 'Updated League' };
+      leagueService.update.mockResolvedValue(updated);
 
-      const result = await resolver.updateLeague(input, mockUser);
-      expect(leagueService.update).toHaveBeenCalledWith(input, mockUser.sub);
-      expect(result).toEqual({ ...mockLeague, name: 'Updated League' });
+      const result = await resolver.updateLeague(input, mockPayload);
+
+      expect(leagueService.update).toHaveBeenCalledWith(
+        input,
+        mockPayload.userId,
+      );
+      expect(result).toEqual(updated);
     });
 
     it('should throw InternalServerErrorException on service failure', async () => {
@@ -119,11 +145,9 @@ describe('LeagueResolver', () => {
         id: 'league-1',
         name: 'Updated League',
       };
-      leagueService.update.mockRejectedValue(
-        new InternalServerErrorException('DB error'),
-      );
+      leagueService.update.mockRejectedValue(new Error('DB error'));
 
-      await expect(resolver.updateLeague(input, mockUser)).rejects.toThrow(
+      await expect(resolver.updateLeague(input, mockPayload)).rejects.toThrow(
         InternalServerErrorException,
       );
     });
@@ -133,22 +157,21 @@ describe('LeagueResolver', () => {
     it('should call leagueService.remove and return the result', async () => {
       leagueService.remove.mockResolvedValue(mockLeague);
 
-      const result = await resolver.removeLeague('league-1', mockUser);
+      const result = await resolver.removeLeague('league-1', mockPayload);
+
       expect(leagueService.remove).toHaveBeenCalledWith(
         'league-1',
-        mockUser.sub,
+        mockPayload.userId,
       );
       expect(result).toEqual(mockLeague);
     });
 
     it('should throw InternalServerErrorException on service failure', async () => {
-      leagueService.remove.mockRejectedValue(
-        new InternalServerErrorException('DB error'),
-      );
+      leagueService.remove.mockRejectedValue(new Error('DB error'));
 
-      await expect(resolver.removeLeague('league-1', mockUser)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+      await expect(
+        resolver.removeLeague('league-1', mockPayload),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 });

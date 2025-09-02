@@ -4,8 +4,9 @@ import { League } from './entities/league.entity';
 import { CreateLeagueInput } from './dto/create-league.input';
 import { UpdateLeagueInput } from './dto/update-league.input';
 import { UseGuards, InternalServerErrorException } from '@nestjs/common';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @Resolver(() => League)
 export class LeagueResolver {
@@ -15,10 +16,10 @@ export class LeagueResolver {
   @UseGuards(GqlAuthGuard)
   async createLeague(
     @Args('createLeagueInput') createLeagueInput: CreateLeagueInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return await this.leagueService.create(createLeagueInput, user.sub);
+      return await this.leagueService.create(createLeagueInput, payload.userId);
     } catch (error) {
       console.error('Error creating league:', error);
       throw new InternalServerErrorException('Failed to create league');
@@ -33,11 +34,11 @@ export class LeagueResolver {
   @Query(() => League, { name: 'league' })
   @UseGuards(GqlAuthGuard)
   async findOneByIdUser(
-    @Args('id', { type: () => String }) id: string,
-    @CurrentUser() user: any,
+    @Args('id', { type: () => String }) id: string, // league id
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return await this.leagueService.findOneByIdUser(id, user.sub);
+      return await this.leagueService.findOneByIdUser(id, payload.userId);
     } catch (error) {
       console.error('Error finding league:', error);
       throw new InternalServerErrorException('Failed to find league');
@@ -59,10 +60,10 @@ export class LeagueResolver {
   @UseGuards(GqlAuthGuard)
   async updateLeague(
     @Args('updateLeagueInput') updateLeagueInput: UpdateLeagueInput,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return await this.leagueService.update(updateLeagueInput, user.sub);
+      return await this.leagueService.update(updateLeagueInput, payload.userId);
     } catch (error) {
       console.error('Error updating league:', error);
       throw new InternalServerErrorException('Failed to update league');
@@ -73,10 +74,10 @@ export class LeagueResolver {
   @UseGuards(GqlAuthGuard)
   async removeLeague(
     @Args('id', { type: () => ID }) id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return await this.leagueService.remove(id, user.sub);
+      return await this.leagueService.remove(id, payload.userId);
     } catch (error) {
       console.error('Error deleting league:', error);
       throw new InternalServerErrorException('Failed to delete league');

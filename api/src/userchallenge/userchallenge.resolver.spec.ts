@@ -3,7 +3,7 @@ import { UserchallengeResolver } from './userchallenge.resolver';
 import { UserchallengeService } from './userchallenge.service';
 import { JoinUserChallengeInput } from './dto/join-userchallenge.input';
 import { UpdateUserChallengeInput } from './dto/update-userchallenge.input';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { ExecutionContext } from '@nestjs/common';
 import { ChallengeStatus } from '@prisma/client';
 
@@ -13,7 +13,9 @@ describe('UserchallengeResolver', () => {
   let resolver: UserchallengeResolver;
   let service: jest.Mocked<UserchallengeService>;
 
-  const mockUser = { sub: 'user123' };
+  // const input = { email: 'test@example.com', name: 'Test' };
+  // const user = { id: '1', ...input };
+  const mockUser = { userId: '1', email: 'test@example.com', name: 'Test' };
 
   beforeEach(async () => {
     const mockService: jest.Mocked<UserchallengeService> = {
@@ -54,7 +56,7 @@ describe('UserchallengeResolver', () => {
       };
       const expected = {
         challengeId: input.challengeId,
-        userId: mockUser.sub,
+        userId: mockUser.userId,
         status: ChallengeStatus.NOT_IN_PROGRESS,
         startedAt: new Date(),
         completedAt: new Date(),
@@ -64,7 +66,7 @@ describe('UserchallengeResolver', () => {
 
       const result = await resolver.joinUserChallenge(input, mockUser);
 
-      expect(service.create).toHaveBeenCalledWith(input, mockUser.sub);
+      expect(service.create).toHaveBeenCalledWith(input, mockUser.userId);
       expect(result).toEqual(expected);
     });
 
@@ -101,7 +103,7 @@ describe('UserchallengeResolver', () => {
 
       const result = await resolver.updateUserChallenge(input, mockUser);
 
-      expect(service.update).toHaveBeenCalledWith(input, mockUser.sub);
+      expect(service.update).toHaveBeenCalledWith(input, mockUser.userId);
       expect(result).toEqual(expected);
     });
 
@@ -136,7 +138,7 @@ describe('UserchallengeResolver', () => {
       const result = await resolver.findOne(input, mockUser);
 
       expect(service.findOne).toHaveBeenCalledWith(
-        mockUser.sub,
+        mockUser.userId,
         input.challengeId,
       );
       expect(result).toEqual(expected);
@@ -172,7 +174,7 @@ describe('UserchallengeResolver', () => {
 
       const result = await resolver.removeUserChallenge(input, mockUser);
 
-      expect(service.remove).toHaveBeenCalledWith(input, mockUser.sub);
+      expect(service.remove).toHaveBeenCalledWith(input, mockUser.userId);
       expect(result).toEqual(expected);
     });
 

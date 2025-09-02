@@ -38,7 +38,11 @@ export class AuthService {
       },
     });
 
-    const payload = { sub: newUser.id, name: newUser.name };
+    const payload = {
+      userId: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+    };
     const accessToken = this.jwtService.sign(payload);
 
     // Generate your own refresh token for the session (recommended)
@@ -76,30 +80,35 @@ export class AuthService {
   }
 
   async remove(id: string) {
-    const oauthAccount = await this.prisma.oAuthAccount.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
     });
 
-    if (!oauthAccount) {
-      throw new NotFoundException(`OAuthAccount with ID ${id} not found`);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    await this.prisma.oAuthAccount.delete({ where: { id } });
+    await this.prisma.user.delete({ where: { id } });
 
     return true;
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(userId: string, refreshToken: string) {
+    const user = await this.userService.findOneById(userId);
     const session = await this.sessionService.findUnique(refreshToken);
 
     if (!session) {
       throw new NotFoundException('Session not found');
     }
 
+    if (session.userId !== user.id) {
+      throw new NotFoundException('Session not found for this user');
+    }
+
     const newSession = await this.sessionService.update(refreshToken);
 
     return {
-      user: session.user,
+      user: newSession.user,
       refreshToken: newSession.refreshToken,
     };
   }
@@ -109,12 +118,15 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
-    // console.log('Login User Auth Service: ', user);
 
     // verify password if using local auth
     // const valid = await bcrypt.compare(input.password, user.passwordHash);
 
-    const payload = { sub: user.id, name: user.name };
+    const payload = {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+    };
     const accessToken = this.jwtService.sign(payload);
 
     const refreshToken = this.sessionService.generateSecureToken();
@@ -130,14 +142,9 @@ export class AuthService {
     return { user, accessToken, refreshToken };
   }
 
-  async logout(refreshToken: string): Promise<boolean> {
-    const session = await this.sessionService.findUnique(refreshToken);
-
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
-
-    await this.sessionService.removeByRefeshToken(refreshToken);
+  async logoutByUserId(userId: string): Promise<boolean> {
+    // Remove all sessions for this user
+    await this.sessionService.removeByUserId(userId);
     return true;
   }
 }

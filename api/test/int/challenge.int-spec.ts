@@ -6,6 +6,11 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
 import { JwtService } from '@nestjs/jwt';
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.dev.local') });
+
 describe('ChallengeModule (integration)', () => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -43,7 +48,7 @@ describe('ChallengeModule (integration)', () => {
 
     // Create JWT
     token = jwtService.sign(
-      { sub: userId },
+      { userId: userId, name: user.name, email: user.email },
       { secret: process.env.JWT_SECRET },
     );
   });
@@ -152,6 +157,24 @@ describe('ChallengeModule (integration)', () => {
       where: { id: challengeId },
     });
     expect(check).toBeNull();
+  });
+
+  it('throw error when non-creator attempts to delete challenge', async () => {
+    const mutation = `
+        mutation RemoveChallenge($id: String!) {
+          removeChallenge(id: $id) {
+            id
+            name
+          }
+        }
+      `;
+
+    const response = await request(app.getHttpServer())
+      .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}-fake`)
+      .send({ query: mutation, variables: { id: challengeId } });
+    expect(response.status).toBe(200);
+    expect(response.body.errors).toBeDefined();
   });
 
   describe('Unauthorized requests', () => {

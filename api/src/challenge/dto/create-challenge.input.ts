@@ -11,10 +11,6 @@ export class CreateChallengeInput {
     nullable: true,
     description: 'Optional description of the challenge',
   })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
   @Field(() => Date, {
     nullable: true,
     description: 'Optional end date for the challenge',

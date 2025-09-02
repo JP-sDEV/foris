@@ -1,5 +1,5 @@
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { PostService } from './post.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostInput } from './dto/create-post.input';
@@ -7,6 +7,7 @@ import { UpdatePostInput } from './dto/update-post.input';
 
 describe('PostService', () => {
   let service: PostService;
+  let prisma: jest.Mocked<PrismaService>;
 
   const mockPrismaService = {
     post: {
@@ -32,6 +33,7 @@ describe('PostService', () => {
     }).compile();
 
     service = module.get<PostService>(PostService);
+    prisma = module.get(PrismaService);
   });
 
   it('should be defined', () => {
@@ -39,31 +41,31 @@ describe('PostService', () => {
   });
 
   describe('create', () => {
-    it('should create a new post WITHOUT Media', async () => {
+    it('should create a new post', async () => {
       const input: CreatePostInput = {
         title: 'Test Title',
         content: 'Test Content',
-        authorId: 'author123',
       };
+      const userId = 'user-123';
 
       const createdPost = {
         id: 'post1',
         title: input.title,
         content: input.content,
-        authorId: input.authorId,
+        authorId: userId,
       };
 
       mockPrismaService.post.create.mockResolvedValue(createdPost);
 
-      const result = await service.create(input);
+      const result = await service.create(input, userId);
 
       expect(result).toEqual(createdPost);
-      expect(mockPrismaService.post.create).toHaveBeenCalledWith({
+      expect(prisma.post.create).toHaveBeenCalledWith({
         data: {
           title: input.title,
           content: input.content,
           author: {
-            connect: { id: input.authorId },
+            connect: { id: userId },
           },
         },
       });
@@ -81,7 +83,7 @@ describe('PostService', () => {
       const result = await service.findAll();
 
       expect(result).toEqual(posts);
-      expect(mockPrismaService.post.findMany).toHaveBeenCalledWith({
+      expect(prisma.post.findMany).toHaveBeenCalledWith({
         include: {
           author: true,
           comments: true,
@@ -92,7 +94,7 @@ describe('PostService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a single post by ID with relations', async () => {
+    it('should return a single post by ID', async () => {
       const post = {
         id: '123',
         title: 'Sample',
@@ -106,7 +108,7 @@ describe('PostService', () => {
       const result = await service.findOne('123');
 
       expect(result).toEqual(post);
-      expect(mockPrismaService.post.findUnique).toHaveBeenCalledWith({
+      expect(prisma.post.findUnique).toHaveBeenCalledWith({
         where: { id: '123' },
         include: {
           author: true,
@@ -115,113 +117,116 @@ describe('PostService', () => {
         },
       });
     });
+
+    it('should throw NotFoundException if post not found', async () => {
+      mockPrismaService.post.findUnique.mockResolvedValue(null);
+
+      await expect(service.findOne('missing')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('findUserPosts', () => {
+    it('should return all posts for a user', async () => {
+      const posts = [
+        {
+          id: 'p1',
+          title: 'Post 1',
+          authorId: 'u1',
+          author: {},
+          comments: [],
+          likes: [],
+        },
+      ];
+      mockPrismaService.post.findMany.mockResolvedValue(posts);
+
+      const result = await service.findUserPosts('u1');
+
+      expect(result).toEqual(posts);
+      expect(prisma.post.findMany).toHaveBeenCalledWith({
+        where: { authorId: 'u1' },
+        include: { author: true, comments: true, likes: true },
+      });
+    });
   });
 
   describe('update', () => {
-    it('should update a post by ID', async () => {
-      const id = 'abc123';
-      const updateData: UpdatePostInput = {
-        id: id,
-        title: 'Updated Title',
+    it('should update a post if user is the owner', async () => {
+      const input: UpdatePostInput = {
+        id: 'p1',
+        title: 'Updated',
         content: 'Updated Content',
-        authorId: 'author456',
       };
+      const userId = 'u1';
+      const existing = { id: 'p1', authorId: 'u1' };
+      const updated = { ...existing, ...input };
 
-      const updatedPost = {
-        id,
-        ...updateData,
-      };
+      mockPrismaService.post.findUnique.mockResolvedValue(existing);
+      mockPrismaService.post.update.mockResolvedValue(updated);
 
-      mockPrismaService.post.update.mockResolvedValue(updatedPost);
+      const result = await service.update(input, userId);
 
-      const result = await service.update(id, updateData);
-
-      expect(result).toEqual(updatedPost);
-      expect(mockPrismaService.post.update).toHaveBeenCalledWith({
-        where: { id },
-        data: updateData,
+      expect(result).toEqual(updated);
+      expect(prisma.post.update).toHaveBeenCalledWith({
+        where: { id: input.id },
+        data: input,
       });
+    });
+
+    it('should throw NotFoundException if post not found', async () => {
+      mockPrismaService.post.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.update({ id: 'missing' } as UpdatePostInput, 'u1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if user is not the owner', async () => {
+      const input: UpdatePostInput = { id: 'p1', title: 'New', content: 'New' };
+      const existing = { id: 'p1', authorId: 'other' };
+
+      mockPrismaService.post.findUnique.mockResolvedValue(existing);
+
+      await expect(service.update(input, 'u1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
   describe('remove', () => {
-    it('should delete a post by ID', async () => {
-      const id = 'xyz789';
-      const deletedPost = {
-        id,
-        title: 'Deleted Post',
-        content: '...',
-      };
+    it('should delete a post if user is the owner', async () => {
+      const id = 'p1';
+      const userId = 'u1';
+      const existing = { id, authorId: userId };
+      const deleted = { id, title: 'Deleted', content: '...' };
 
-      mockPrismaService.post.delete.mockResolvedValue(deletedPost);
+      mockPrismaService.post.findUnique.mockResolvedValue(existing);
+      mockPrismaService.post.delete.mockResolvedValue(deleted);
 
-      const result = await service.remove(id);
+      const result = await service.remove(id, userId);
 
-      expect(result).toEqual(deletedPost);
-      expect(mockPrismaService.post.delete).toHaveBeenCalledWith({
-        where: { id },
-      });
+      expect(result).toEqual(deleted);
+      expect(prisma.post.delete).toHaveBeenCalledWith({ where: { id } });
     });
-  });
 
-  describe('findOne - Error Handling', () => {
     it('should throw NotFoundException if post not found', async () => {
       mockPrismaService.post.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent-id')).rejects.toThrow(
+      await expect(service.remove('missing', 'u1')).rejects.toThrow(
         NotFoundException,
       );
-      expect(mockPrismaService.post.findUnique).toHaveBeenCalledWith({
-        where: { id: 'nonexistent-id' },
-        include: {
-          author: true,
-          comments: true,
-          likes: true,
-        },
-      });
     });
-  });
 
-  describe('update - Error Handling', () => {
-    it('should throw NotFoundException if update fails (post not found)', async () => {
-      const id = 'invalid-id';
-      const updateData: UpdatePostInput = {
-        id: 'invalid-id',
-        title: 'Does not matter',
-        content: '...',
-        authorId: 'authorX',
-      };
+    it('should throw ForbiddenException if user is not the owner', async () => {
+      mockPrismaService.post.findUnique.mockResolvedValue({
+        id: 'p1',
+        authorId: 'other',
+      });
 
-      // Mock findUnique to return null → simulate not found
-      mockPrismaService.post.findUnique.mockResolvedValue(null);
-
-      await expect(service.update(id, updateData)).rejects.toThrow(
-        NotFoundException,
+      await expect(service.remove('p1', 'u1')).rejects.toThrow(
+        ForbiddenException,
       );
-
-      expect(mockPrismaService.post.findUnique).toHaveBeenCalledWith({
-        where: { id },
-      });
-
-      // Optional: ensure update was never called
-      expect(mockPrismaService.post.update).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('remove - Error Handling', () => {
-    it('should throw NotFoundException if delete fails (post not found)', async () => {
-      const id = 'missing-id';
-
-      // Mock findUnique to return null → simulate not found
-      mockPrismaService.post.findUnique.mockResolvedValue(null);
-
-      await expect(service.remove(id)).rejects.toThrow(NotFoundException);
-
-      expect(mockPrismaService.post.findUnique).toHaveBeenCalledWith({
-        where: { id },
-      });
-
-      expect(mockPrismaService.post.delete).not.toHaveBeenCalled();
     });
   });
 });

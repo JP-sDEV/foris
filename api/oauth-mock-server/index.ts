@@ -48,7 +48,6 @@ app.post('/token', (req: any, res: any) => {
       exp: now + 3600,
     },
     privateKey,
-    { algorithm: 'RS256' },
   );
 
   res.json({

@@ -44,9 +44,6 @@ input CreateAuthInput {
 }
 
 input CreateChallengeInput {
-  """Optional description of the challenge"""
-  description: String
-
   """Optional end date for the challenge"""
   endDate: DateTime
 
@@ -85,7 +82,6 @@ input CreateLikeInput {
 }
 
 input CreatePostInput {
-  authorId: String!
   content: String
   title: String!
 }
@@ -147,9 +143,9 @@ type Mutation {
   followUser(targetUserId: String!): Boolean!
   joinUserChallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
   login(email: String!): AuthPayload!
-  logout(refreshToken: String!): Boolean!
-  refreshToken(refreshToken: String!): AuthPayload!
-  removeAuth(id: String!): Boolean!
+  logout: Boolean!
+  payload(refreshToken: String!): AuthPayload!
+  removeAuth: Boolean!
   removeChallenge(id: String!): Challenge!
   removeComment(id: String!): Comment!
   removeLeague(id: ID!): League!
@@ -157,7 +153,7 @@ type Mutation {
   removeLeagueuser(leagueId: String!, userId: String!): RemoveLeagueuserResponse!
   removeLike(id: String!): Like!
   removePost(id: String!): Post!
-  removeUser(id: String!): User!
+  removeUser: User!
   removeUserChallenge(joinUserChallengeInput: JoinUserChallengeInput!): Userchallenge!
   unfollowUser(targetUserId: String!): Boolean!
   updateChallenge(updateChallengeInput: UpdateChallengeInput!): Challenge!
@@ -205,9 +201,6 @@ type RemoveLeagueuserResponse {
 }
 
 input UpdateChallengeInput {
-  """Optional description of the challenge"""
-  description: String
-
   """Optional end date for the challenge"""
   endDate: DateTime
 
@@ -239,9 +232,8 @@ input UpdateLeaguechallengeInput {
 }
 
 input UpdatePostInput {
-  authorId: String
   content: String
-  id: String
+  id: String!
   title: String
 }
 
@@ -255,7 +247,6 @@ input UpdateUserInput {
   avatarUrl: String
   bio: String
   email: String
-  id: String!
   name: String
 }
 

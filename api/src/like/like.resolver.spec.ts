@@ -4,13 +4,17 @@ import { LikeService } from './like.service';
 import { CreateLikeInput } from './dto/create-like.input';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Like } from './entities/like.entity';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 
 describe('LikeResolver', () => {
   let resolver: LikeResolver;
   let service: LikeService;
 
-  const mockUser = { sub: 'user-123' };
+  const mockUser = {
+    userId: 'user-1',
+    email: 'test@email.com',
+    name: 'Test User',
+  };
 
   const mockLike: Like = {
     postId: 'post-1',
@@ -51,7 +55,7 @@ describe('LikeResolver', () => {
 
       const result = await resolver.createLike(input, mockUser);
 
-      expect(service.create).toHaveBeenCalledWith(mockUser.sub, input);
+      expect(service.create).toHaveBeenCalledWith(mockUser.userId, input);
       expect(result).toEqual(mockLike);
     });
 
@@ -70,7 +74,7 @@ describe('LikeResolver', () => {
 
       const result = await resolver.findOne('like-1', mockUser);
 
-      expect(service.findOne).toHaveBeenCalledWith(mockUser.sub, 'like-1');
+      expect(service.findOne).toHaveBeenCalledWith(mockUser.userId, 'like-1');
       expect(result).toEqual(mockLike);
     });
 
@@ -89,7 +93,7 @@ describe('LikeResolver', () => {
 
       const result = await resolver.removeLike('like-1', mockUser);
 
-      expect(service.remove).toHaveBeenCalledWith(mockUser.sub, 'like-1');
+      expect(service.remove).toHaveBeenCalledWith(mockUser.userId, 'like-1');
       expect(result).toEqual(mockLike);
     });
 

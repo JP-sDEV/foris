@@ -102,6 +102,11 @@ export class SessionService {
     // Optionally, you can return the deleted session or a success message
     return session;
   }
+
+  async removeByUserId(userId: string): Promise<void> {
+    await this.prisma.session.deleteMany({ where: { userId } });
+  }
+
   generateSecureToken(): string {
     return randomBytes(32).toString('hex');
   }

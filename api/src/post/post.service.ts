@@ -2,6 +2,7 @@ import {
   NotFoundException,
   Injectable,
   InternalServerErrorException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CreatePostInput } from './dto/create-post.input';
 import { UpdatePostInput } from './dto/update-post.input';
@@ -11,14 +12,14 @@ import { PrismaService } from '../prisma/prisma.service';
 export class PostService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPostInput: CreatePostInput) {
+  async create(createPostInput: CreatePostInput, userId: string) {
     try {
       return await this.prisma.post.create({
         data: {
           title: createPostInput.title,
           content: createPostInput.content,
           author: {
-            connect: { id: createPostInput.authorId },
+            connect: { id: userId },
           },
         },
       });
@@ -87,37 +88,65 @@ export class PostService {
     }
   }
 
-  async update(id: string, updatePostInput: UpdatePostInput) {
+  async update(updatePostInput: UpdatePostInput, userId: string) {
     try {
       // Ensure post exists
-      const existing = await this.prisma.post.findUnique({ where: { id } });
+      const existing = await this.prisma.post.findUnique({
+        where: { id: updatePostInput.id },
+      });
+
       if (!existing) {
-        throw new NotFoundException(`Post with ID ${id} not found`);
+        throw new NotFoundException(
+          `Post with ID ${updatePostInput.id} not found`,
+        );
+      }
+
+      // Check ownership
+      if (existing.authorId !== userId) {
+        throw new ForbiddenException(
+          `You do not have permission to update this post`,
+        );
       }
 
       return await this.prisma.post.update({
-        where: { id },
+        where: { id: updatePostInput.id },
         data: updatePostInput,
       });
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to update post');
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     try {
-      // Ensure post exists
       const existing = await this.prisma.post.findUnique({ where: { id } });
+
       if (!existing) {
         throw new NotFoundException(`Post with ID ${id} not found`);
+      }
+
+      if (existing.authorId !== userId) {
+        throw new ForbiddenException(
+          `You do not have permission to update this post`,
+        );
       }
 
       return await this.prisma.post.delete({
         where: { id },
       });
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error; // let these bubble up
+      }
       throw new InternalServerErrorException('Failed to delete post');
     }
   }

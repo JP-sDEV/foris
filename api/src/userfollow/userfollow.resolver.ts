@@ -2,9 +2,10 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UserfollowService } from './userfollow.service';
 import { Userfollow } from './entities/userfollow.entity';
 import { UseGuards, InternalServerErrorException } from '@nestjs/common';
-import { GqlAuthGuard } from '../auth/auth.guard';
+import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../user/entities/user.entity';
+import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @Resolver(() => Userfollow)
 export class UserfollowResolver {
@@ -14,11 +15,11 @@ export class UserfollowResolver {
   @UseGuards(GqlAuthGuard)
   async followUser(
     @Args('targetUserId') targetUserId: string,
-    @CurrentUser() currentUser: any,
+    @CurrentUser() payload: JwtPayload,
   ): Promise<boolean> {
     try {
       return await this.userfollowService.followUser(
-        currentUser.sub,
+        payload.userId,
         targetUserId,
       );
     } catch (error) {
@@ -31,11 +32,11 @@ export class UserfollowResolver {
   @UseGuards(GqlAuthGuard)
   async unfollowUser(
     @Args('targetUserId') targetUserId: string,
-    @CurrentUser() currentUser: any,
+    @CurrentUser() payload: JwtPayload,
   ): Promise<boolean> {
     try {
       return await this.userfollowService.unfollowUser(
-        currentUser.sub,
+        payload.userId,
         targetUserId,
       );
     } catch (error) {
@@ -88,11 +89,11 @@ export class UserfollowResolver {
   @UseGuards(GqlAuthGuard)
   async isFollowing(
     @Args('targetUserId') targetUserId: string,
-    @CurrentUser() currentUser: any,
+    @CurrentUser() payload: JwtPayload,
   ): Promise<boolean> {
     try {
       return await this.userfollowService.isFollowing(
-        currentUser.sub,
+        payload.userId,
         targetUserId,
       );
     } catch (error) {

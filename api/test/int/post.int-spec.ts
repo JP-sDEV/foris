@@ -4,11 +4,19 @@ import { AppModule } from '../../src/app.module';
 import * as request from 'supertest';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
+import { JwtService } from '@nestjs/jwt';
+
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.dev.local') });
 
 describe('PostModule (integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let userId: string;
+  let token: string;
+  let jwtService: JwtService;
   let postId: string;
   const nonExistentId = uuidv4(); // Generate a random ID that doesn't exist
 
@@ -21,20 +29,27 @@ describe('PostModule (integration)', () => {
     await app.init();
 
     prisma = app.get(PrismaService);
+    jwtService = app.get(JwtService);
 
     // Clear and seed the test DB
     await prisma.post.deleteMany();
     await prisma.user.deleteMany();
 
+    // Create user
     const user = await prisma.user.create({
       data: {
         id: uuidv4(),
-        email: 'test@example.com',
-        name: 'Test User',
+        email: 'challenge-test@example.com',
+        name: 'Challenge Tester',
       },
     });
-
     userId = user.id;
+
+    // Create JWT
+    token = jwtService.sign(
+      { userId: userId, name: user.name, email: user.email },
+      { secret: process.env.JWT_SECRET },
+    );
 
     const post = await prisma.post.create({
       data: {
@@ -68,6 +83,7 @@ describe('PostModule (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({ query });
 
     expect(response.status).toBe(200);
@@ -93,6 +109,7 @@ describe('PostModule (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({
         query,
         variables: { userId },
@@ -130,6 +147,7 @@ describe('PostModule (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({ query: mutation, variables });
 
     // console.error(response.body.errors);
@@ -154,6 +172,7 @@ describe('PostModule (integration)', () => {
     // Remove the post
     const response = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({ query: mutation, variables: { id: postId } });
 
     expect(response.status).toBe(200);
@@ -170,6 +189,7 @@ describe('PostModule (integration)', () => {
 
     const confirmResponse = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({ query: confirmQuery });
 
     expect(confirmResponse.status).toBe(200);
@@ -193,6 +213,7 @@ describe('PostModule (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({ query });
 
     expect(response.status).toBe(200);
@@ -225,6 +246,7 @@ describe('PostModule (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({ query: mutation, variables });
 
     expect(response.status).toBe(200);
@@ -247,6 +269,7 @@ describe('PostModule (integration)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/graphql')
+      .set('Authorization', `Bearer ${token}`)
       .send({ query: mutation, variables: { id: nonExistentId } });
 
     expect(response.status).toBe(200);
