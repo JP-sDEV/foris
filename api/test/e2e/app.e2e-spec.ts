@@ -5,6 +5,11 @@ import { AppModule } from '../../src/app.module';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.dev.local') });
+
 describe('E2E Tests (GraphQL)', () => {
   let app: INestApplication;
   let httpServer: any;
@@ -42,7 +47,7 @@ describe('E2E Tests (GraphQL)', () => {
       .send({ query, variables });
 
     if (authToken) {
-      req.set('Authorization', `Bearer ${authToken}`);
+      req.set('authorization', `Bearer ${authToken}`);
     }
 
     return req;
@@ -104,8 +109,6 @@ describe('E2E Tests (GraphQL)', () => {
 
     const res = await graphql(mutation);
 
-    // const res = await graphql(mutation, variables);
-
     expect(res.status).toBe(200);
     expect(res.body.errors).toBeUndefined();
     expect(res.body.data.login.accessToken).toBeDefined();
@@ -122,13 +125,15 @@ describe('E2E Tests (GraphQL)', () => {
   it('should logout user', async () => {
     const res = await graphql(
       `
-        mutation ($refreshToken: String!) {
-          logout(refreshToken: $refreshToken)
+        mutation {
+          logout
         }
       `,
-      { refreshToken: refreshToken },
+      {},
       token,
     );
+
+    expect(res.body.errors).toBeUndefined();
     expect(res.body.data.logout).toBe(true);
   });
 
@@ -157,11 +162,7 @@ describe('E2E Tests (GraphQL)', () => {
       `
         mutation {
           createPost(
-            createPostInput: {
-              title: "Test Title"
-              content: "Hello world!"
-              authorId: "${userId}"
-            }
+            createPostInput: { title: "Test Title", content: "Hello world!" }
           ) {
             id
             content
@@ -270,7 +271,7 @@ describe('E2E Tests (GraphQL)', () => {
     const resFollow = await graphql(
       `
       mutation {
-        followUser(targetUserId: "${secondUserId}") 
+        followUser(targetUserId: "${secondUserId}")
         }
     `,
       {},
