@@ -21,18 +21,21 @@ model User {
   avatarUrl String? // Optional avatar/profile image URL
   createdAt DateTime @default(now())
 
-  oauthAccounts  OAuthAccount[]
-  sessions       Session[]
-  followers      UserFollow[]    @relation("Followers")
-  following      UserFollow[]    @relation("Following")
-  comments       Comment[]
-  posts          Post[]
-  media          Media[]
-  leagues        League[]
-  challenges     Challenge[]
-  userChallenges UserChallenge[]
-  likes          Like[]
-  LeagueUser     LeagueUser[]
+  oauthAccounts         OAuthAccount[]
+  sessions              Session[]
+  followers             UserFollow[]            @relation("Followers")
+  following             UserFollow[]            @relation("Following")
+  comments              Comment[]
+  posts                 Post[]
+  media                 Media[]
+  leagues               League[]
+  challenges            Challenge[]
+  userChallenges        UserChallenge[]
+  likes                 Like[]
+  LeagueUser            LeagueUser[]
+  UserChallengeProgress UserChallengeProgress[]
+  UserChallengeLike     UserChallengeLike[]
+  UserChallengeComment  UserChallengeComment[]
 }
 
 model OAuthAccount {
@@ -100,12 +103,14 @@ model Comment {
 }
 
 model Post {
-  id        String   @id @default(uuid()) @db.Uuid
-  title     String
-  content   String?
-  createdAt DateTime @default(now())
-  authorId  String   @db.Uuid
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id          String     @id @default(uuid()) @db.Uuid
+  title       String
+  content     String?
+  challengeId String?    @db.Uuid
+  createdAt   DateTime   @default(now())
+  authorId    String     @db.Uuid
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  challenge   Challenge? @relation(fields: [challengeId], references: [id], onDelete: SetNull)
 
   mediaFiles Media[]
 
@@ -135,26 +140,76 @@ model League {
   creator          User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   leagueChallenges LeagueChallenge[]
   LeagueUser       LeagueUser[]
+  UserChallenge    UserChallenge[]
 }
 
 model Challenge {
-  id          String    @id @default(uuid()) @db.Uuid
+  id          String            @id @default(uuid()) @db.Uuid
   name        String
   description String?
-  createdAt   DateTime  @default(now())
-  createdBy   String    @db.Uuid
-  approved    Boolean   @default(false)
+  createdAt   DateTime          @default(now())
+  createdBy   String            @db.Uuid
+  approved    Boolean           @default(true)
   endDate     DateTime?
+  isPublic    Boolean           @default(true)
+  category    ChallengeCategory @default(PERSONAL)
 
-  creator          User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  userChallenges   UserChallenge[]
-  leagueChallenges LeagueChallenge[]
+  creator               User                    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  userChallenges        UserChallenge[]
+  leagueChallenges      LeagueChallenge[]
+  UserChallengeProgress UserChallengeProgress[]
+  Post                  Post[]
+}
+
+enum ChallengeCategory {
+  PERSONAL
+  FITNESS
+  FINANCIAL
+  CAREER
+  EDUCATION
+  SOCIAL
+  HEALTH
+  HOBBY
+  TRAVEL
+  OTHER
 }
 
 model UserChallenge {
+  id          String                   @id @default(uuid()) @db.Uuid
+  userId      String                   @db.Uuid
+  challengeId String                   @db.Uuid
+  leagueId    String?                  @db.Uuid
+  completedAt DateTime?
+  status      ChallengeStatus          @default(IN_PROGRESS)
+  startedAt   DateTime                 @default(now())
+  source      ChallengeSource          @default(PUBLIC)
+  difficulty  EnumChallengeDifficulty?
+  points      Int?                     @default(0)
+
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge            Challenge              @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  league               League?                @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  UserChallengeLike    UserChallengeLike[]
+  UserChallengeComment UserChallengeComment[]
+
+  @@unique([userId, challengeId, source, leagueId])
+}
+
+enum EnumChallengeDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ChallengeSource {
+  PUBLIC // user opted in themselves
+  LEAGUE // assigned through a league
+}
+
+model UserChallengeProgress {
   userId      String          @db.Uuid
   challengeId String          @db.Uuid
-  completedAt DateTime? // Nullable — only set when completed
+  completedAt DateTime?
   status      ChallengeStatus @default(IN_PROGRESS)
   startedAt   DateTime        @default(now())
 
@@ -196,4 +251,31 @@ model LeagueUser {
 enum LeagueRole {
   MEMBER
   ADMIN
+}
+
+model UserChallengeLike {
+  userId          String   @db.Uuid
+  userChallengeId String   @db.Uuid
+  likedAt         DateTime @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userChallenge UserChallenge @relation(fields: [userChallengeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, userChallengeId])
+  @@index([userId])
+  @@index([userChallengeId])
+}
+
+model UserChallengeComment {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  userChallengeId String   @db.Uuid
+  content         String
+  createdAt       DateTime @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userChallenge UserChallenge @relation(fields: [userChallengeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userChallengeId])
 }
