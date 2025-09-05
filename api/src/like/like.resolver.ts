@@ -6,10 +6,16 @@ import { UseGuards, InternalServerErrorException } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
+import { PinoLogger } from 'nestjs-pino';
 
 @Resolver(() => Like)
 export class LikeResolver {
-  constructor(private readonly likeService: LikeService) {}
+  constructor(
+    private readonly likeService: LikeService,
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(LikeResolver.name);
+  }
 
   @Mutation(() => Like)
   @UseGuards(GqlAuthGuard)
@@ -18,9 +24,16 @@ export class LikeResolver {
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
+      this.logger.info(
+        { userId: payload.userId, postId: createLikeInput.postId },
+        'Creating like',
+      );
       return await this.likeService.create(payload.userId, createLikeInput);
     } catch (error) {
-      console.error('Error creating like:', error);
+      this.logger.error(
+        { error, userId: payload.userId, postId: createLikeInput.postId },
+        'Error creating like',
+      );
       throw new InternalServerErrorException('Failed to create like');
     }
   }
@@ -32,9 +45,13 @@ export class LikeResolver {
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
+      this.logger.info({ userId: payload.userId, postId: id }, 'Finding like');
       return await this.likeService.findOne(payload.userId, id);
     } catch (error) {
-      console.error('Error finding like:', error);
+      this.logger.error(
+        { error, userId: payload.userId, postId: id },
+        'Error finding like',
+      );
       throw new InternalServerErrorException('Failed to find like');
     }
   }
@@ -46,9 +63,13 @@ export class LikeResolver {
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
+      this.logger.info({ userId: payload.userId, postId: id }, 'Removing like');
       return await this.likeService.remove(payload.userId, id);
     } catch (error) {
-      console.error('Error removing like:', error);
+      this.logger.error(
+        { error, userId: payload.userId, postId: id },
+        'Error removing like',
+      );
       throw new InternalServerErrorException('Failed to remove like');
     }
   }

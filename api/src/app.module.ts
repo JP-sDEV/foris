@@ -4,6 +4,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
+import { LoggerModule } from 'nestjs-pino';
 
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
@@ -27,6 +28,27 @@ import { LeagueuserModule } from './leagueuser/leagueuser.module';
       sortSchema: true,
       path: '/api/graphql',
       context: ({ req }) => ({ req }),
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  translateTime: 'SYS:standard',
+                  ignore: 'pid,hostname',
+                },
+              }
+            : undefined,
+        redact: [
+          'req.headers.authorization', // hide bearer token
+          'req.headers.cookie', // hide cookies
+        ],
+        // if testing, disable pino logging
+        level: process.env.NODE_ENV === 'test' ? 'silent' : 'info',
+      },
     }),
     UserModule,
     AuthModule,

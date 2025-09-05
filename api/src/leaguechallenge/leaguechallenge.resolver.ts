@@ -7,47 +7,69 @@ import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
+import { PinoLogger } from 'nestjs-pino';
+import { InternalServerErrorException } from '@nestjs/common';
 
 @Resolver(() => Leaguechallenge)
 export class LeaguechallengeResolver {
   constructor(
     private readonly leaguechallengeService: LeaguechallengeService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(LeaguechallengeResolver.name);
+  }
 
-  // add challenge to a league
   @Mutation(() => Leaguechallenge)
   @UseGuards(GqlAuthGuard)
-  addLeaguechallenge(
+  async addLeaguechallenge(
     @Args('createLeaguechallengeInput')
     createLeaguechallengeInput: CreateLeaguechallengeInput,
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return this.leaguechallengeService.create(
+      this.logger.info(
+        { userId: payload.userId, input: createLeaguechallengeInput },
+        'Adding challenge to league',
+      );
+      return await this.leaguechallengeService.create(
         createLeaguechallengeInput,
         payload.userId,
       );
     } catch (error) {
-      console.error('Error adding challenge to league:', error);
-      throw new Error('Failed adding challenge to league');
+      this.logger.error(
+        { error, userId: payload.userId, input: createLeaguechallengeInput },
+        'Error adding challenge to league',
+      );
+      throw new InternalServerErrorException(
+        'Failed adding challenge to league',
+      );
     }
   }
 
   @Mutation(() => Leaguechallenge)
   @UseGuards(GqlAuthGuard)
-  removeLeaguechallenge(
+  async removeLeaguechallenge(
     @Args('updateLeaguechallengeInput')
-    createLeaguechallengeInput: UpdateLeaguechallengeInput,
+    updateLeaguechallengeInput: UpdateLeaguechallengeInput,
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
-      return this.leaguechallengeService.remove(
-        createLeaguechallengeInput,
+      this.logger.info(
+        { userId: payload.userId, input: updateLeaguechallengeInput },
+        'Removing challenge from league',
+      );
+      return await this.leaguechallengeService.remove(
+        updateLeaguechallengeInput,
         payload.userId,
       );
     } catch (error) {
-      console.error('Error removing challenge from league:', error);
-      throw new Error('Failed removing challenge from league');
+      this.logger.error(
+        { error, userId: payload.userId, input: updateLeaguechallengeInput },
+        'Error removing challenge from league',
+      );
+      throw new InternalServerErrorException(
+        'Failed removing challenge from league',
+      );
     }
   }
 }

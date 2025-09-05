@@ -2,25 +2,31 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateLikeInput } from './dto/create-like.input';
 import { PostService } from '../post/post.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class LikeService {
   constructor(
     private postService: PostService,
     private prisma: PrismaService,
-  ) {}
-  async create(userId: string, createLikeInput: CreateLikeInput) {
-    await this.postService.findOne(createLikeInput.postId);
+    private logger: PinoLogger,
+  ) {
+    this.logger.setContext(LikeService.name);
+  }
 
+  async create(userId: string, createLikeInput: CreateLikeInput) {
     try {
+      this.logger.info(
+        { userId, postId: createLikeInput.postId },
+        'Creating like',
+      );
+
+      await this.postService.findOne(createLikeInput.postId);
+
       return await this.prisma.like.create({
         data: {
-          post: {
-            connect: { id: createLikeInput.postId },
-          },
-          user: {
-            connect: { id: userId },
-          },
+          post: { connect: { id: createLikeInput.postId } },
+          user: { connect: { id: userId } },
         },
         include: {
           user: true,
@@ -28,41 +34,36 @@ export class LikeService {
         },
       });
     } catch (error) {
-      console.error('Error creating like:', error);
+      this.logger.error(
+        { error, userId, postId: createLikeInput.postId },
+        'Error creating like',
+      );
       throw new InternalServerErrorException('Failed to create like');
     }
   }
 
   async findOne(userId: string, postId: string) {
     try {
-      const like = await this.prisma.like.findUnique({
-        where: {
-          userId_postId: {
-            userId,
-            postId,
-          },
-        },
-      });
+      this.logger.info({ userId, postId }, 'Finding like');
 
-      return like;
+      return await this.prisma.like.findUnique({
+        where: { userId_postId: { userId, postId } },
+      });
     } catch (error) {
-      console.error('Error finding like:', error);
+      this.logger.error({ error, userId, postId }, 'Error finding like');
       throw new InternalServerErrorException('Failed to find like');
     }
   }
 
-  async remove(userId: string, id: string) {
+  async remove(userId: string, postId: string) {
     try {
+      this.logger.info({ userId, postId }, 'Removing like');
+
       return await this.prisma.like.delete({
-        where: {
-          userId_postId: {
-            userId,
-            postId: id,
-          },
-        },
+        where: { userId_postId: { userId, postId } },
       });
     } catch (error) {
-      console.error('Error removing like:', error);
+      this.logger.error({ error, userId, postId }, 'Error removing like');
       throw new InternalServerErrorException('Failed to remove like');
     }
   }

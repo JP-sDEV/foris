@@ -1,10 +1,11 @@
+// userfollow.resolver.ts
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UserfollowService } from './userfollow.service';
 import { Userfollow } from './entities/userfollow.entity';
+import { User } from '../user/entities/user.entity';
 import { UseGuards, InternalServerErrorException } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { User } from '../user/entities/user.entity';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
 
 @Resolver(() => Userfollow)
@@ -23,7 +24,7 @@ export class UserfollowResolver {
         targetUserId,
       );
     } catch (error) {
-      console.error('Error following user:', error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to follow user');
     }
   }
@@ -40,7 +41,7 @@ export class UserfollowResolver {
         targetUserId,
       );
     } catch (error) {
-      console.error('Error unfollowing user:', error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to unfollow user');
     }
   }
@@ -50,7 +51,7 @@ export class UserfollowResolver {
     try {
       return await this.userfollowService.getFollowers(userId);
     } catch (error) {
-      console.error('Error fetching followers:', error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to get followers');
     }
   }
@@ -60,7 +61,7 @@ export class UserfollowResolver {
     try {
       return await this.userfollowService.getFollowing(userId);
     } catch (error) {
-      console.error('Error fetching following:', error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to get following');
     }
   }
@@ -70,7 +71,7 @@ export class UserfollowResolver {
     try {
       return await this.userfollowService.getFollowerCount(userId);
     } catch (error) {
-      console.error('Error getting follower count:', error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to get follower count');
     }
   }
@@ -80,7 +81,7 @@ export class UserfollowResolver {
     try {
       return await this.userfollowService.getFollowingCount(userId);
     } catch (error) {
-      console.error('Error getting following count:', error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to get following count');
     }
   }
@@ -97,7 +98,7 @@ export class UserfollowResolver {
         targetUserId,
       );
     } catch (error) {
-      console.error('Error checking follow status:', error);
+      console.error(error);
       throw new InternalServerErrorException('Failed to check follow status');
     }
   }

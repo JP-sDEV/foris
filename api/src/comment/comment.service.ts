@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   ForbiddenException,
 } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
 import { PostService } from '../post/post.service';
@@ -14,10 +15,20 @@ export class CommentService {
   constructor(
     private postService: PostService,
     private prisma: PrismaService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(CommentService.name);
+  }
   async create(userId: string, createCommentInput: CreateCommentInput) {
     try {
+      // throws error if not found
       await this.postService.findOne(createCommentInput.postId);
+
+      this.logger.info(
+        { userId, postId: createCommentInput.postId },
+        'Creating comment',
+      );
+
       return await this.prisma.comment.create({
         data: {
           content: createCommentInput.content,
@@ -35,7 +46,10 @@ export class CommentService {
       });
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
-      console.error('Error creating comment:', error);
+      this.logger.error(
+        { error, userId, postId: createCommentInput.postId },
+        'Error creating comment',
+      );
       throw new InternalServerErrorException('Failed to create comment');
     }
   }
@@ -51,13 +65,15 @@ export class CommentService {
       });
 
       if (!comment) {
+        this.logger.error({ id }, 'Comment not found');
         throw new NotFoundException(`Comment with ID ${id} not found`);
       }
 
+      this.logger.info({ id }, 'Comment fetched successfully');
+
       return comment;
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      console.error('Error finding comment:', error);
+      this.logger.error({ error, id }, 'Error fetching comment');
       throw new InternalServerErrorException('Failed to fetch comment');
     }
   }
@@ -69,16 +85,33 @@ export class CommentService {
       });
 
       if (!existingComment) {
+        this.logger.error(
+          { id: updateCommentInput.id },
+          'Comment to update not found',
+        );
         throw new NotFoundException(
           `Comment with ID ${updateCommentInput.id} not found`,
         );
       }
 
       if (existingComment.userId !== userId) {
+        this.logger.error(
+          { userId, id: updateCommentInput.id },
+          'Unauthorized update attempt',
+        );
         throw new ForbiddenException(
+          this.logger.error(
+            { userId, id: updateCommentInput.id },
+            'Unauthorized update attempt',
+          ),
           `You are not authorized to update this comment`,
         );
       }
+
+      this.logger.info(
+        { userId, id: updateCommentInput.id },
+        'Updating comment',
+      );
 
       return await this.prisma.comment.update({
         where: { id: updateCommentInput.id },
@@ -91,6 +124,11 @@ export class CommentService {
         },
       });
     } catch (error) {
+      this.logger.error(
+        { error, userId, id: updateCommentInput.id },
+        'Error updating comment',
+      );
+
       if (
         error instanceof NotFoundException ||
         error instanceof ForbiddenException
@@ -98,7 +136,6 @@ export class CommentService {
         throw error;
       }
 
-      console.error('Error updating comment:', error);
       throw new InternalServerErrorException('Failed to update comment');
     }
   }
@@ -119,10 +156,14 @@ export class CommentService {
         );
       }
 
+      this.logger.info({ userId, id }, 'Deleting comment');
+
       return await this.prisma.comment.delete({
         where: { id },
       });
     } catch (error) {
+      this.logger.error({ error, userId, id: id }, 'Error updating comment');
+
       if (
         error instanceof NotFoundException ||
         error instanceof ForbiddenException

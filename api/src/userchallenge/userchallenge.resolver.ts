@@ -1,10 +1,11 @@
+// userchallenge.resolver.ts
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UserchallengeService } from './userchallenge.service';
 import { Userchallenge } from './entities/userchallenge.entity';
 import { JoinUserChallengeInput } from './dto/join-userchallenge.input';
 import { UpdateUserChallengeInput } from './dto/update-userchallenge.input';
+import { UseGuards, InternalServerErrorException } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/guards/auth.guard';
-import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
 
@@ -25,17 +26,11 @@ export class UserchallengeResolver {
         payload.userId,
       );
     } catch (error) {
-      console.error('Error joining user challenge:', error);
-      throw new Error('Failed to join user challenge');
+      console.error(error);
+      throw new InternalServerErrorException('Failed to join user challenge');
     }
   }
 
-  // @Query(() => [Userchallenge], { name: 'userchallenge' })
-  // findAll() {
-  //   return this.userchallengeService.findAll();
-  // }
-
-  // Update challenge status
   @Mutation(() => Userchallenge)
   @UseGuards(GqlAuthGuard)
   async updateUserChallenge(
@@ -49,8 +44,8 @@ export class UserchallengeResolver {
         payload.userId,
       );
     } catch (error) {
-      console.error('Error updating user challenge:', error);
-      throw new Error('Failed to update user challenge');
+      console.error(error);
+      throw new InternalServerErrorException('Failed to update user challenge');
     }
   }
 
@@ -67,8 +62,8 @@ export class UserchallengeResolver {
         joinUserChallengeInput.challengeId,
       );
     } catch (error) {
-      console.error('Error finding user challenge:', error);
-      throw new Error('Failed to find user challenge');
+      console.error(error);
+      throw new InternalServerErrorException('Failed to find user challenge');
     }
   }
 
@@ -85,8 +80,8 @@ export class UserchallengeResolver {
         payload.userId,
       );
     } catch (error) {
-      console.error('Error removing user challenge:', error);
-      throw new Error('Failed to remove user challenge');
+      console.error(error);
+      throw new InternalServerErrorException('Failed to remove user challenge');
     }
   }
 }

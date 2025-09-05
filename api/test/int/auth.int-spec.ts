@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, Logger } from '@nestjs/common';
 import * as request from 'supertest';
+import { mockLogger } from './utils/mock-logger';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -353,7 +354,7 @@ describe('AuthResolver (Integration)', () => {
   `;
 
     beforeAll(async () => {
-      prisma = new PrismaService();
+      prisma = new PrismaService(mockLogger);
 
       // 1️⃣ Create test user first
       userEmail = `refreshtoken+${uuidv4()}@test.com`;

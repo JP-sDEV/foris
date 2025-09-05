@@ -7,12 +7,17 @@ import { GqlAuthGuard } from '../auth/guards/auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/types/jwt-payload.type';
+import { PinoLogger } from 'nestjs-pino';
 
 @Resolver(() => Leagueuser)
 export class LeagueuserResolver {
-  constructor(private readonly leagueuserService: LeagueuserService) {}
+  constructor(
+    private readonly leagueuserService: LeagueuserService,
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(LeagueuserResolver.name);
+  }
 
-  // User joins league
   @Mutation(() => Leagueuser)
   @UseGuards(GqlAuthGuard)
   createLeagueuser(
@@ -20,30 +25,48 @@ export class LeagueuserResolver {
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
+      this.logger.info(
+        { userId: payload.userId, input: createLeagueuserInput },
+        'User joining league',
+      );
       return this.leagueuserService.create(
         createLeagueuserInput,
         payload.userId,
       );
     } catch (error) {
-      console.error('Error joining league:', error);
-      throw new Error('Failed to join league user');
+      this.logger.error(
+        { error, userId: payload.userId, input: createLeagueuserInput },
+        'Error joining league',
+      );
+      throw error;
     }
   }
 
-  @Query(() => [Leagueuser], { name: 'leagueusers' }) // Changed name to plural
+  @Query(() => [Leagueuser], { name: 'leagueusers' })
   @UseGuards(GqlAuthGuard)
   findAll(
     @Args('createLeagueuserInput') createLeagueuserInput: CreateLeagueuserInput,
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
+      this.logger.info(
+        { userId: payload.userId, leagueId: createLeagueuserInput.leagueId },
+        'Finding users in league',
+      );
       return this.leagueuserService.findAll(
         createLeagueuserInput,
         payload.userId,
       );
     } catch (error) {
-      console.error('Error finding users in league:', error);
-      throw new Error('Failed to find users in league');
+      this.logger.error(
+        {
+          error,
+          userId: payload.userId,
+          leagueId: createLeagueuserInput.leagueId,
+        },
+        'Error finding users in league',
+      );
+      throw error;
     }
   }
 
@@ -51,15 +74,20 @@ export class LeagueuserResolver {
   @UseGuards(GqlAuthGuard)
   findOne(
     @Args('leagueId', { type: () => String }) leagueId: string,
-    @Args('userId', { type: () => String }) userId: string, // Added @Args decorator
+    @Args('userId', { type: () => String }) userId: string,
   ) {
     try {
+      this.logger.info({ leagueId, userId }, 'Finding league user');
       return this.leagueuserService.findOne(leagueId, userId);
     } catch (error) {
-      console.error('Error finding league user:', error);
-      throw new Error('Failed to find league user');
+      this.logger.error(
+        { error, leagueId, userId },
+        'Error finding league user',
+      );
+      throw error;
     }
   }
+
   @Mutation(() => RemoveLeagueuserResponse)
   @UseGuards(GqlAuthGuard)
   removeLeagueuser(
@@ -68,10 +96,17 @@ export class LeagueuserResolver {
     @CurrentUser() payload: JwtPayload,
   ) {
     try {
+      this.logger.info(
+        { userId: payload.userId, removeUserId: userId, leagueId },
+        'Removing user from league',
+      );
       return this.leagueuserService.remove(leagueId, payload.userId, userId);
     } catch (error) {
-      console.error('Error removing user from league:', error);
-      throw new Error('Failed to remove user from league');
+      this.logger.error(
+        { error, userId: payload.userId, removeUserId: userId, leagueId },
+        'Error removing user from league',
+      );
+      throw error;
     }
   }
 }

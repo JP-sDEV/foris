@@ -173,7 +173,6 @@ describe('ChallengeModule (integration)', () => {
       .post('/api/graphql')
       .set('Authorization', `Bearer ${token}-fake`)
       .send({ query: mutation, variables: { id: challengeId } });
-    console.log('Response: ', response.statusCode);
     expect(response.status).toBe(200);
     expect(response.body.errors).toBeDefined();
   });
