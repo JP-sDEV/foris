@@ -152,6 +152,7 @@ model Challenge {
   approved    Boolean           @default(true)
   endDate     DateTime?
   isPublic    Boolean           @default(true)
+  points      Int               @default(0)
   category    ChallengeCategory @default(PERSONAL)
 
   creator               User                    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
