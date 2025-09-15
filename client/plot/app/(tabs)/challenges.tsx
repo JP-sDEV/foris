@@ -93,38 +93,6 @@ export default function TabTwoScreen() {
           ),
         })}
       </Collapsible>
-      <FeedCard
-        avatarUri="https://randomuser.me/api/portraits/men/32.jpg"
-        username="jp.codes"
-        imageUri="https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d"
-        likesCount={543}
-        caption="Sunset walk in the city 🌇"
-        comments={[
-          { id: "1", user: "anna", text: "So beautiful!" },
-          { id: "2", user: "mike", text: "Where is this?" },
-        ]}
-        timestamp="2h"
-        onLike={() => console.log("liked")}
-        onComment={() => console.log("comment")}
-        postType='challenge'
-
-      />   
-      <FeedCard 
-avatarUri="https://randomuser.me/api/portraits/men/32.jpg"
-        username="jp.codes"
-        likesCount={543}
-        caption="5k run with the team!"
-        comments={[
-          { id: "1", user: "anna", text: "So beautiful!" },
-          { id: "2", user: "mike", text: "Where is this?" },
-        ]}
-        timestamp="2h"
-        onLike={() => console.log("liked")}
-        onComment={() => console.log("comment")}
-        postType='league'
-        leagueName='Run Club'
-
-      />
     </ParallaxScrollView>
   );
 }

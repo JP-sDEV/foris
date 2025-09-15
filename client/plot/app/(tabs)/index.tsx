@@ -9,11 +9,14 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={styles.container}>
+    // <SafeAreaView style={styles.container}>
        <ScrollView
         contentContainerStyle={{
           paddingBottom: insets.bottom
         }}
+
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
       >
         <ThemedView style={styles.stepContainer}>
           {dummyFeed.map((post: Post, index) => (
@@ -36,7 +39,7 @@ export default function HomeScreen() {
     </ScrollView>
 
 
-    </SafeAreaView>
+    // </SafeAreaView>
   );
 }
 
